@@ -83,12 +83,12 @@ echo 0 0 * * * nobody /usr/lib/tumgreyspf/tumgreyspf-clean \
 
    cd "$RPM_BUILD_ROOT"/var/lib/tumgreyspf/config/
    sed 's|^spfqueryPath.*|spfqueryPath = "/usr/bin/spfquery"|' \
-      tumgreyspf | \
-      sed 's|^greylistDir.*|greylistDir = "/var/lib/tumgreyspf/data"|' \
+      tumgreyspf.conf | \
+      sed 's|^greylistDir.*|greylistDir = "/var/lib/tumgreyspf/data"|' | \
       sed 's|^configPath.*|configPath = "file:///var/lib/tumgreyspf/config"|' \
-      >tumgreyspf.new && \
-      cat tumgreyspf.new >tumgreyspf && \
-      rm -f tumgreyspf.new
+      >tumgreyspf.conf.new && \
+      cat tumgreyspf.conf.new >tumgreyspf.conf && \
+      rm -f tumgreyspf.conf.new
 )
 
 %clean
@@ -118,4 +118,5 @@ fi
 %config /var/lib/tumgreyspf/config/tumgreyspf.conf
 %config /var/lib/tumgreyspf/config/__default__
 %attr(600,nobody,root) /var/lib/tumgreyspf/data
+/etc/cron.d/tumgreyspf
 %doc README README.QuickStart README.performance WHATSNEW TODO
