@@ -9,7 +9,7 @@ import re, os, string, shutil, sys
 postfixDir = '/etc/postfix'
 tumgreyspf_time_limit = 3600
 tumgreyspf_user = 'nobody'
-tumgreyspf_path = '/usr/local/lib/postfix/tumgreyspf'
+tumgreyspf_path = '/usr/lib/tumgreyspf/tumgreyspf'
 G_verbose = 1
 
 

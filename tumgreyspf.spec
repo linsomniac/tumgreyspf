@@ -58,7 +58,7 @@ ln -s /usr/lib/tumgreyspf/tumgreyspf-configtest "$RPM_BUILD_ROOT"/usr/sbin
 ln -s /usr/lib/tumgreyspf/tumgreyspf-stat "$RPM_BUILD_ROOT"/usr/sbin
 
 #  set up crontab
-echo 0 0 * * * nobody /usr/lib/tumgreyspf/tumgreyspf-clean \
+echo '0 0 * * * nobody /usr/lib/tumgreyspf/tumgreyspf-clean' \
       >"$RPM_BUILD_ROOT"/etc/cron.d/tumgreyspf
 
 #  replace pieces in code that need to reflect new directories
@@ -94,22 +94,6 @@ echo 0 0 * * * nobody /usr/lib/tumgreyspf/tumgreyspf-clean \
 %clean
 [ -n "$RPM_BUILD_ROOT" -a "$RPM_BUILD_ROOT" != / ] && rm -rf "$RPM_BUILD_ROOT"
 
-%post
-/usr/lib/tumgreyspf/tumgreyspf-install
-
-%preun
-if [ -f /etc/postfix/main.cf.tumgreyspf ]
-then
-   cp /etc/postfix/main.cf /etc/postfix/main.cf.old
-   cp /etc/postfix/main.cf.tumgreyspf /etc/postfix/main.cf
-fi
-if [ -f /etc/postfix/master.cf.tumgreyspf ]
-then
-   cp /etc/postfix/master.cf /etc/postfix/master.cf.old
-   cp /etc/postfix/master.cf.tumgreyspf /etc/postfix/master.cf
-fi
-/etc/init.d/postfix restart
-
 %files
 %defattr(755,root,root)
 /usr/lib/tumgreyspf
@@ -117,6 +101,6 @@ fi
 %dir /var/lib/tumgreyspf/config
 %config /var/lib/tumgreyspf/config/tumgreyspf.conf
 %config /var/lib/tumgreyspf/config/__default__
-%attr(600,nobody,root) /var/lib/tumgreyspf/data
+%attr(700,nobody,root) /var/lib/tumgreyspf/data
 /etc/cron.d/tumgreyspf
 %doc README README.QuickStart README.performance WHATSNEW TODO

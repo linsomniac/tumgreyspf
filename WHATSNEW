@@ -1,4 +1,11 @@
 ================================
+Version 1.02 -- Wed Nov 10, 2004
+
+Adding blackholing.
+Fixed a bunch of bugs in the install process and spec file which Kevin
+      Fenzi found.  Thanks.
+
+================================
 Version 1.01 -- Mon Aug 23, 2004
 
 Fixing a bug in tumgreyspf-install related to updating the time_limit
