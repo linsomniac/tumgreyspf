@@ -1,0 +1,225 @@
+#!/usr/bin/env python
+#
+#  Set up postfix to use tumgreyspf
+
+import re, os, string, shutil, sys
+
+
+#  default values
+postfixDir = '/etc/postfix'
+tumgreyspf_time_limit = 3600
+tumgreyspf_user = 'nobody'
+tumgreyspf_path = '/usr/local/lib/postfix/tumgreyspf'
+G_verbose = 1
+
+
+#####################################
+def addPostfixMultiline(data, value):
+	'''Add a value to an existing, possibly multi-line Postfix main.cf block.
+	The modified block is returned.'''
+	data = data[:]
+	if len(data) == 1:
+		data[0] = data[0][:-1] + ' ' + value + '\n'
+	else:
+		#  find prefix
+		prefix = '   '
+		for line in data[1:]:
+			m = re.match(r'^(\s+)\S.*$', line)
+			if m:
+				prefix = m.group(1)
+				break
+
+		#  add value
+		data.append(prefix + value + '\n')
+	return(data)
+
+
+########################
+#  find path to postconf
+postconfPathList = (
+      '/usr/sbin/postconf',
+      '/sbin/postconf',
+      '/usr/bin/postconf',
+      )
+postconfPath = None
+for path in postconfPathList:
+	if os.path.exists(path):
+		postconfPath = path
+		break
+
+##########################
+#  check required programs
+if not postconfPath:
+	sys.stderr.write('Unable to find path to "postconf" program.\n')
+	sys.exit(1)
+
+################
+#  check version
+fp = os.popen('postconf mail_version', 'r')
+postfix_version = None
+for line in fp.readlines():
+	m = re.match(r'^mail_version\s*=\s*([\d.]+)\s*$', line)
+	if not m: continue
+	postfix_version = m.group(1)
+data = fp.read()
+fp.close()
+if not postfix_version:
+	sys.stderr.write('Unable to determine postfix version.\n')
+	sys.exit(1)
+
+#  convert version into a list of integers and compare
+version_split = map(int, string.split(postfix_version, '.'))
+if version_split[0] < 2 or (version_split[0] == 2 and version_split[0] < 1):
+	sys.stderr.write('tumgreyspf requires Postfix version 2.1 or higher.\n')
+	sys.stderr.write('   Found version %s.\n' % postfix_version)
+	sys.exit(1)
+
+#  check existance of postfix directory
+if not os.path.exists(postfixDir):
+	sys.stderr.write('Postfix does not seem to be in "%s".\n' % postfixDir)
+	sys.exit(1)
+
+#######################################
+#  make backup of main.cf and master.cf
+masterFile = os.path.join(postfixDir, 'master.cf')
+masterBackupFile = os.path.join(postfixDir, 'master.cf.tumgreyspf')
+mainFile = os.path.join(postfixDir, 'main.cf')
+mainBackupFile = os.path.join(postfixDir, 'main.cf.tumgreyspf')
+if not os.path.exists(mainFile):
+	sys.stderr.write('Could not find main.cf in "%s".\n' % mainFile)
+	sys.exit(1)
+if not os.path.exists(masterFile):
+	sys.stderr.write('Could not find master.cf in "%s".\n' % masterFile)
+	sys.exit(1)
+if os.path.exists(masterBackupFile):
+	sys.stdout.write('master.cf backup file "%s" already exists.\n'
+			% masterBackupFile)
+	sys.stdout.write('   Not making another backup.\n')
+else:
+	shutil.copyfile(masterFile, masterBackupFile)
+if os.path.exists(mainBackupFile):
+	sys.stdout.write('main.cf backup file "%s" already exists.\n'
+			% mainBackupFile)
+	sys.stdout.write('   Not making another backup.\n')
+else:
+	shutil.copyfile(mainFile, mainBackupFile)
+
+######################################################
+#  rewrite the smtpd_recipient_restrictions in main.cf
+fp = open(mainFile, 'r')
+mainData = fp.readlines()
+fp.close()
+
+#  find smtpd_recipient_restrictions
+startLinenum = None
+endLinenum = None
+
+#  find start of smtpd_recipient_restrictions
+mode = 'start'
+smtpd_recipient_restrictions = None
+for linenum in xrange(len(mainData)):
+	line = mainData[linenum]
+	if mode == 'start':
+		if re.match(r'^smtpd_recipient_restrictions\s*=', line):
+			startLinenum = linenum
+			mode = 'end'
+	elif mode == 'end':
+		if re.match(r'^[^#\s].*', line):
+			endLinenum = linenum
+			smtpd_recipient_restrictions = mainData[startLinenum:endLinenum]
+			break
+if startLinenum == None:
+	startLinenum = len(mainData)
+	endLinenum = len(mainData)
+	smtpd_recipient_restrictions = [
+			'smtpd_recipient_restrictions =\n',
+			'   reject_unauth_destination\n',
+			]
+	if G_verbose: print 'No smtpd_recipient_restrictions found, adding.'
+
+#  check for and add reject_unauth_destination
+found = 0
+for line in smtpd_recipient_restrictions:
+	#  remove comments
+	m = re.match(r'^(.*)#.*$', line)
+	if m: line = m.group(1)
+
+	if re.search(r'\breject_unauth_destination\b', line):
+		found = 1
+		break
+if not found:
+	if G_verbose:
+		print 'Adding reject_unauth_destination to smtpd_recipient_restrictions'
+	smtpd_recipient_restrictions = addPostfixMultiline(
+			smtpd_recipient_restrictions, 'reject_unauth_destination')
+
+#  check for and add check_policy_service
+found = 0
+for line in smtpd_recipient_restrictions:
+	#  remove comments
+	m = re.match(r'^(.*)#.*$', line)
+	if m: line = m.group(1)
+
+	if re.search(r'\bcheck_policy_service unix:private/tumgreyspf\b', line):
+		found = 1
+		break
+if not found:
+	if G_verbose:
+		print 'Adding tumgreyspf policy to smtpd_recipient_restrictions'
+	smtpd_recipient_restrictions = addPostfixMultiline(
+			smtpd_recipient_restrictions,
+			'check_policy_service unix:private/tumgreyspf')
+
+#  change the policy_time_limit
+found = 0
+for linenum in xrange(len(mainData)):
+	line = mainData[linenum]
+	m = re.match(r'^tumgreyspf_time_limit\s*=\s*(\d+).*$', line)
+	if m:
+		mainData[linenum] = string.replace(line, m.group(1),
+				tumgreyspf_time_limit)
+		found = 1
+if not found:
+	mainData.append('\n')
+	mainData.append('#  increase the policy timeout for tumgreyspf\n')
+	mainData.append('tumgreyspf_time_limit = %s\n' % tumgreyspf_time_limit)
+
+#  update mainData with new settings
+mainData = (mainData[:startLinenum] + smtpd_recipient_restrictions +
+		mainData[endLinenum:])
+
+####################
+#  write new main.cf
+fp = open(mainFile, 'w')
+for line in mainData:
+	fp.write(line)
+fp.close()
+
+#####################################
+#  add tumgreyspf policy to master.cf
+fp = open(masterFile, 'r')
+found = 0
+for line in fp.readlines():
+	if re.match(r'tumgreyspf\s*', line): found = 1
+fp.close()
+
+#  append the data
+if not found:
+	if G_verbose:
+		print 'Adding tumgreyspf policy to master.cf'
+	fp = open(masterFile, 'a')
+	fp.write('\n')
+	fp.write('#  policy for tumgreyspf\n')
+	fp.write('tumgreyspf  unix  -       n       n       -       -       spawn\n')
+	fp.write('user=%s argv=%s\n' % ( tumgreyspf_user, tumgreyspf_path ))
+	fp.close()
+
+##################
+#  restart postfix
+if os.path.exists('/etc/init.d/postfix'):
+	if G_verbose:
+		print 'Restarting postfix.'
+	os.system('/etc/init.d/postfix restart')
+else:
+	sys.stderr.write('Failed to restart postfix.  Please restart manually.\n')
+	sys.exit(1)
