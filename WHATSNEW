@@ -1,3 +1,4 @@
+Added tumgreyspf-install.
 Added tumgreyspf-stat to show status of greylist data directory.
 Config file name can now be specified as argument to program.
 Split common routines out into tumgreyspfsupp.

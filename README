@@ -3,83 +3,327 @@ This is tumgreyspf, an external policy checker for the postfix mail
 server. It can optionally greylist and/or use spfquery to check SPF
 records to determine if email should be accepted by your server. 
 
-It uses the filesystem as it's database, there is no database requirement. 
+It uses the file-system as it's database, there is no database requirement. 
 
 REQUIREMENTS
-	python
-		http://www.python.org/
-	spfquery
-		http://www.libspf2.org/
-	journaling file system
-		lots of files and directories. 
 
-INSTALL
+   Python
+      http://www.python.org/
+   Postfix 2.1 or above
+      http://www.postfix.org/
+   Optional: spfquery or pyspf
+      http://www.libspf2.org/
+      http://spf.pobox.com/downloads.html
+      http://www.wayforward.net/spf/
 
-	Copy the tumgreyspf python script to /usr/local/lib/postfix/
-	Add to your postfix master.cf:
-		
-		tumgreyspf  unix  -       n       n       -       -       spawn
-		user=nobody argv=/usr/local/lib/postfix/tumgreyspf
+QUICK-START INSTALL
 
-	Create the config and data directories:
+   The program "tumgreyspf-install" is provided which tries to
+   automatically do everything necessary to get postfix working with
+   tumgreyspf.  If "tumgreyspf-install" does not work for you, please let
+   us know so we can fix it.
 
-	mkdir -p /var/spool/tumgreyspf/data
-	chown nobody /var/spool/tumgreyspf/data
+   If you installed from the RPM or Debian package, "tumgreyspf-install"
+   has already been run.  To see the results of the install, run "grep
+   tumgreyspf-install /var/log/messages".
 
-	mkdir -p /var/spool/tumgreyspf/config
-	chown nobody /var/spool/tumgreyspf/config
+   "tumgreyspf-install" makes backup copies of the "master.cf" and
+   "main.cf" files before modifying them.  To undo the install, copy the
+   "main.cf.tumgreyspf" and "master.cf.tumgreyspf" files back to "main.cf"
+   and "master.cf" (respectively) and restart Postfix.
 
-	Copy the default config file into place:
-	cp __default__ /var/spool/tumgreyspf/config/
-
-	Edit the __default__ file
-
-	In main.cf add to the end of smtpd_sender_restrictions
-	check_policy_service unix:private/tumgreyspf
-
-	If the libspf2 or perl SPF module are installed, spf checks will be 
-	available. Otherwise spf will be disabled. 
-
-	restart and enjoy. 
-
-CONFIG
-
-	Configuration is read from most specific to least specific. 
-
-	There is the __default__ file at the top level that
-	is used as a default for all decisions. If you wish to disable 
-	SPF or greylist for a sepcific IP/subnet/sender/recipient, 
-	you simply make a __default__ file in a subdirectory under 
-	config matching the entity you wish to match, with SPF or other 
-	checks disabled.  
-
-	For example, if you want to disable SPF queries for hosts in 192.168.10.0/24:
-	mkdir /var/spool/tumgreyspf/config/client_address/192/168/10/
-	edit /var/spool/tumgreyspf/config/client_address/192/168/10/__default__
-	
-SPFSEEDONLY=0
-GREYLISTTIME=300
-CHECKERS=
-OTHERCONFIGS=
-
-	That sets checkers and otherconfigs to nothing, so for that subnet
-	no checks are done. All more specific hosts are still using the top level 
-	__default__
-
-	SPFSEEDONLY=1 will only check SPF, not use it for decisions. 
-	GREYLISTTIME is the amount of time to wait before allowing a 
-	connection to accept email. 
-	CHECKERS is one of the set of 'spf' and 'greylist'. This is a 
-	list of checks to perform. Note that they are done in the listed
-	order. 
-	OTHERCONFIGS is a list of directories under the top config directory
-	that should be checked for other config files. This is one of 
-	client_address,envelope_sender,envelope_recipient
-	client_address is the IP address of the sending host. 
-	envelope_sender is the email address that is in the From line
-	envelope_recipient is the email address that is in the To line. 
+   If "tumgreyspf-install" does not work for you, or you wish to manually
+   install tumgreyspf, please see the "INSTALL INSTRUCTIONS" later in
+   this document.
 
 LOGGING
 
-	tumgreyspf will log messages to syslog about it's activities. 
-	
+   tumgreyspf will log messages to syslog about it's activities.  The
+   "debugLevel" value in "tumgreyspf.conf" can be increased to get
+   additional information to be logged.  When set to a value of "0", only
+   test results (greylist/SPF hits/misses) are logged.  Look for
+   "tumgreyspf" in your mail log files.
+
+TESTING
+
+   The best way to test tumgreyspf is to simulate SMTP connections, then
+   watch the logs and look in the ".../data/" directory for greylist
+   settings.  This testing probably needs to be done from a remote system.
+
+   For example, suppose we have a machine "10.9.8.7" that we want to run
+   tests against our mail server "10.1.2.3":
+
+      Log into 10.9.8.7.
+      Run "telnet 10.1.2.3 25"
+      Type "helo example.com"
+      Type "mail from: <user1@example.com>"
+      Type "rcpt to: <user2@example.com>"
+
+   Note that "user2@example.com" needs to be a valid local e-mail address
+   in most cases, and that "user1@example.com" is subject to SPF blocking.
+   The first time you do this, you should receive the response:
+
+      450 <user2@example.com>: Recipient address rejected: Service
+      unavailable, greylisted.
+
+   This indicates that the greylisting is working.
+
+   Check the logs, you should see something similar to:
+
+      Aug 22 19:52:49 mail tumgreyspf[12182]: Initial greylisting:
+         REMOTEIP="10.9.8.7" HELO="example.com"
+         SENDER="user1@example.com" RECIPIENT="user2@example.com" QUEUEID=""
+      Aug 22 19:52:49 mail databytes[12184]: RCPT_INFO:
+         REMOTEIP="10.9.8.7" HELO="example.com"
+         SENDER="user1@example.com" RECIPIENT="user2@example.com" QUEUEID=""
+      Aug 22 19:52:49 mail postfix/smtpd[11992]: NOQUEUE: reject: RCPT
+         from testhost.example.com[10.9.8.7]: 450
+         <user2@example.com>: Recipient address rejected: Service unavailable,
+         greylisted.; from=<user1@example.com> to=<user2@example.com>
+         proto=SMTP helo=<example.com>
+
+   The "Initial greylisting" indicates that the record was not found in the
+   database, and that a new entry was created.
+
+   Now look in the greylist data for this entry:
+
+      ls /path/to/data/client_address/10/9/8/7/greylist/user1@example.com/user2@example.com
+
+   Wait 10 minutes (or whatever you set the greylisting time to) and try
+   it again.  This time, in response to your "rcpt to" line, you should
+   get:
+
+      250 Ok
+
+   or (if you have enabled SPF blocking for your domain):
+
+      554 <user2@example.com>: Recipient address rejected: Please see
+      http://spf.pobox.com/why.html?sender=user2%40example.com&ip=10.9.8.7&receiver=spfquery
+
+   The only way to get around the SPF block is to either disable SPF
+   checking in tumgreyspf (perhaps for this IP only, see the
+   "CONFIGURATION" section below), or change your SPF configuration so that
+   it allows mail from your test machine.
+
+CONFIGURATION
+
+   Configurations are processed from the top down, in the order specified
+   by "OTHERCONFIGS".  So, settings in a top-level __default__ file will be
+   overridden if set in a configuration below that top level.
+
+   There is the __default__ file at the top level that is used as a
+   default for all decisions. If you wish to disable SPF or greylist for
+   a specific IP/subnet/sender/recipient, you simply make a __default__
+   file in a subdirectory under config matching the entity you wish to
+   match, with SPF or other checks disabled.
+
+   For example, if you want to disable SPF queries for hosts in 192.168.10.0/24:
+
+      mkdir /var/spool/tumgreyspf/config/client_address/192/168/10/
+      edit /var/spool/tumgreyspf/config/client_address/192/168/10/__default__
+
+   The __default__ file should contain:
+
+      SPFSEEDONLY=0
+      GREYLISTTIME=300
+      CHECKERS=
+      OTHERCONFIGS=
+
+   Note that for a specific IP address, the last component is a file,
+   having the same structure as the __default__.  For example, to block the
+   address "10.1.2.3", you would create a file named "3" under the
+   directory ".../config/client_address/10/1/2".
+
+   The above sets CHECKERS and OTHERCONFIGS to nothing, so for that subnet
+   no checks are done.  All other IP address blocks are still using the top
+   level __default__
+
+   CONFIGURATION VALUES
+
+      SPFSEEDONLY=1 will only check SPF, not use it for decisions.
+
+      GREYLISTTIME is the number of seconds to wait before allowing a
+      an incoming message.  Unless you have a good reason for it, this
+      should never be more than 3 hours or it may cause warnings about
+      undeliverable e-mail to be sent.
+
+      CHECKERS is one of the set of 'spf' and 'greylist'.  This is a list
+      of checks to perform.  Note that they are done in the listed order.
+
+      OTHERCONFIGS specifies which configurations will be used.  Note that
+      these configurations are read a maximum of once, and are applied in
+      order.  If another configuration changes this list, any
+      configurations that are already done will be skipped.  Allowed values
+      are:
+
+         client_address
+
+            Look for configuration values based on the remote IP address.
+            For example, if the remote host "10.9.8.7" is connecting,
+            the following will be tried:
+
+               .../config/client_address/10/__default__
+               .../config/client_address/10/9/__default__
+               .../config/client_address/10/9/8/__default__
+               .../config/client_address/10/9/8/7
+
+         envelope_sender
+
+            Split the envelope sender (not the header "From" address) into
+            "domain" and "local" parts, and look for a domain-specific
+            configuration, or a configuration specific to a particular
+            sender.  So, if "user@example.com" sends a message, the
+            following files would be tried:
+
+               .../config/envelope_sender/example.com/__default__
+               .../config/envelope_sender/example.com/user
+
+            Note that special characters other than @, _ (underscore), -
+            (dash), . (dot), and + (plus) are escaped using "%DD" format,
+            where "DD" is the hex value of the ASCII character.  Also note
+            that a leading "." in a domain or user is converted to "%2e",
+            to prevent the confusion of "hidden files".
+
+         envelope_recipient
+
+            This is handled the same as envelope_sender, but is the
+            envelope recipient.  Note that this is not the value of the
+            "To" header in the message, but the value in the envelope.
+
+      GREYLISTEXPIREDAYS is a floating point number of days since receiving
+      the last piece of e-mail after which a greylist entry will be
+      expired.  This value is used by "tumgreyspf-clean".
+
+INSTALL INSTRUCTIONS
+
+   The fastest way to install tumgreyspf is to use the package for your
+   system.  This will use "tumgreyspf-install" to attempt to automatically
+   configure postfix for tumgreyspf.  However, it's recommended that you
+   carefully review the Postfix configuration changes and verify that they
+   are as you expect.
+
+   INSTALLING THE SOFTWARE
+
+      This does not need to be done if you've installed the RPM/Debian
+      package.
+
+      tumgreyspf uses two directories.  One is for the main tumgreyspf
+      code, and the other is for it's data/configuration.  I call these
+      directories "$TGSPROG" and "$TGSDATA" in the instructions below.
+      Additionally, the user which tumgreyspf runs as is "$TGSUSER".
+
+      Run the following commands:
+
+         TGSPROG=/usr/local/lib/tumgreyspf
+         TGSDATA=/var/local/lib/tumgreyspf
+         TGSUSER=nobody
+
+         #  set up directories
+         mkdir -p "$TGSPROG" "$TGSDATA"/config
+         mkdir ""$TGSDATA"/data
+         cp __default__.dist "$TGSDATA"/config/__default__
+
+         #  install programs
+         cp tumgreyspf tumgreyspf-clean tumgreyspf-configtest "$TGSPROG"
+         cp tumgreyspf-install tumgreyspf-stat tumgreyspfsupp.py "$TGSPROG"
+         cp tumgreyspf.conf "$TGSDATA"/config/
+
+         #  change permissions and ownership
+         chown -R "$TGSUSER" "$TGSDATA"
+         chown -R root "$TGSPROG" "$TGSDATA"/config
+         chmod 700 "$TGSDATA"/data
+         chmod -R 755 "$TGSDATA"/config
+
+      If you have changed the values of TGSPROG or TGSDATA, you will need
+      to change the the paths in the following files.  In the .conf file,
+      you will need to review the whole file, the other files have the
+      required changes isolated to the top of the file:
+
+         "$TGSDATA"/config/tumgreyspf.conf
+         "$TGSPROG"/tumgreyspfsupp.py
+         "$TGSPROG"/tumgreyspf
+         "$TGSPROG"/tumgreyspf-clean
+         "$TGSPROG"/tumgreyspf-stat
+
+   CRONTAB
+
+      Next, you will need to add a cron job which runs daily to clean out
+      the the expired SPF entries.  On many systems, there is a
+      "/etc/cron.d" directory, and the following can be be used to add an
+      entry:
+
+         echo 0 0 * * * $TGSUSER $TGSPROG/tumgreyspf-clean \
+               >/etc/cron.d/tumgreyspf
+
+      Otherwise, you will need to use "crontab -e -u $TGSUSER" to add the
+      following entry:
+
+         0 0 * * * $TGSPROG/tumgreyspf-clean
+
+      Note that you cannot use the literal "$TGSPROG", you will have to
+      replace it with whatever the real value is.
+
+   CONFIGURING POSTFIX
+
+      WARNING: In these examples, you cannot use the literal "$TGS"
+      variables.  You will have to manually replace the appropriate values,
+      they are simply there to mark where the changes need to be.
+
+      Add to your postfix master.cf:
+
+         tumgreyspf  unix  -       n       n       -       -       spawn
+            user=nobody argv=$TGSPROG/tumgreyspf
+
+
+      Next, main.cf must be configured so that "smtpd_sender_restrictions"
+      includes a call to the tumgreyspf policy filter.  If you already have
+      a "smtpd_sender_restrictions" line(s), you can add the following line
+      anywhere after the line which reads "reject_unauth_destination".
+
+         check_policy_service unix:private/tumgreyspf
+
+      WARNING: It's very important that you have
+      "reject_unauth_destination" before the "check_policy_service".  If
+      you do not, your system may be an open relay.
+
+      So, for example, a minimal "smtpd_sender_restrictions" may look like:
+
+         smtpd_sender_restrictions =
+            reject_unauth_destination
+            check_policy_service unix:private/tumgreyspf
+
+      However, for better spam protection you may wish to use:
+
+         smtpd_recipient_restrictions =
+            permit_mynetworks
+            reject_non_fqdn_hostname
+            reject_invalid_hostname
+            reject_unauth_destination
+            check_policy_service unix:private/tumgreyspf
+
+      You will also need to have a line in the main.cf which reads:
+
+         tumgreyspf_time_limit = 3600
+
+      Please consult the postfix documentation for more information on
+      these and other settings you may wish to have in the
+      "smtpd_recipient_restrictions" configuration.
+
+   SPF INSTALLATION
+
+      tumgreyspf can also use an external SPF program to do SPF lookups.
+      You can use any of the following:
+
+         Download libspf2 from http://www.libspf2.org/ untar and run
+         "./configure; make", then copy "src/spfquery/spfquery_static" to
+         "$TGSPROG".
+
+         The Mail::SPF::Query Perl module includes a "spfquery" package
+         that tumgreyspf can be used with.  Once installed, change your
+         tumgreyspf.conf file to list the path to "spfquery".
+         Information on downloading this package is available
+         from http://spf.pobox.com/downloads.html
+
+         The Python pyspf package from http://www.wayforward.net/spf/ can
+         also be used.  If this is installed, tumgreyspf will automatically
+         use it.

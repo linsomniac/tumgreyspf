@@ -7,7 +7,7 @@
 #  All Rights Reserved
 #  <jafo@tummy.com>
 
-S_rcsid = '$Id: tumgreyspf,v 1.1.1.1 2004-08-09 03:33:34 jafo Exp $'
+S_rcsid = '$Id: tumgreyspf,v 1.2 2004-08-23 02:06:46 jafo Exp $'
 
 
 import syslog, os, sys, string, re, time, popen2, urllib, stat
@@ -39,35 +39,53 @@ def spfcheck(data, configData, configGlobal):
 		if len(data) <  2: helo = 'unknown'
 		else: helo = data[1]
 
-	spfqueryPath = configGlobal['spfqueryPath']
-	if not os.path.exists(spfqueryPath):
-		if debugLevel:
-			syslog.syslog('spfcheck: No spfquery at "%s", exiting' % spfqueryPath)
-		return(( None, None ))
+	#  start query
+	spfResult = None
+	spfReason = None
 
-	#  open connection to spfquery
-	fpIn, fpOut = popen2.popen2('%s -file -' % spfqueryPath)
-	fpOut.write('%s %s %s\n' % ( ip, sender, helo ))
-	fpOut.close()
-	spfdata = fpIn.readlines()
-	fpIn.close()
-	if debugLevel:
-		syslog.syslog('spfcheck: spfquery result: "%s"' % str(spfdata))
+	#  try to use pyspf
+	try:
+		import spf
+		ret = spf.check(i = ip, s = sender, h = helo)
+		spfResult = string.strip(ret[0])
+		spfReason = string.strip(ret[2])
+		if debugLevel:
+			syslog.syslog('spfcheck: pyspf result: "%s"' % str(spfData))
+	except ImportError:
+		pass
+
+	#  try spfquery
+	if not spfResult:
+		#  check for spfquery
+		spfqueryPath = configGlobal['spfqueryPath']
+		if not os.path.exists(spfqueryPath):
+			if debugLevel:
+				syslog.syslog('spfcheck: No spfquery at "%s", exiting'
+						% spfqueryPath)
+			return(( None, None ))
+
+		#  open connection to spfquery
+		fpIn, fpOut = popen2.popen2('%s -file -' % spfqueryPath)
+		fpOut.write('%s %s %s\n' % ( ip, sender, helo ))
+		fpOut.close()
+		spfData = fpIn.readlines()
+		fpIn.close()
+		if debugLevel:
+			syslog.syslog('spfcheck: spfquery result: "%s"' % str(spfData))
+		spfResult = string.strip(spfData[0])
+		spfReason = string.strip(spfData[1])
 
 	#  read result
-	result = None
-	if spfdata: result = string.strip(spfdata[0])
-	if result == 'fail':
-		reason = string.strip(spfdata[1])
+	if spfResult == 'fail':
 		syslog.syslog('SPF fail: REMOTEIP="%s" HELO="%s" SENDER="%s" '
 				'RECIPIENT="%s" QUEUEID="%s" REASON="%s"'
 				% ( data.get('client_address', '<UNKNOWN>'),
 					data.get('helo_name', '<UNKNOWN>'),
 					data.get('sender', '<UNKNOWN>'),
 					data.get('recipient', '<UNKNOWN>'),
-					data.get('queue_id', '<UNKNOWN>'), reason ) )
+					data.get('queue_id', '<UNKNOWN>'), spfReason ) )
 
-		return(( 'reject', reason ))
+		return(( 'reject', spfReason ))
 
 	return(( None, None ))
 

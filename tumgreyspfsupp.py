@@ -3,21 +3,21 @@
 #  Copyright (c) 2004, Sean Reifschneider, tummy.com, ltd.
 #  All Rights Reserved.
 
-S_rcsid = '$Id: tumgreyspfsupp.py,v 1.1.1.1 2004-08-09 03:33:34 jafo Exp $'
+S_rcsid = '$Id: tumgreyspfsupp.py,v 1.2 2004-08-23 02:06:46 jafo Exp $'
 
 
 import syslog, os, sys, string, re, time, popen2, urllib, stat
 
 
 #  default values
-defaultConfigFilename = '/etc/tumgreyspf.conf'
+defaultConfigFilename = '/var/local/tumgreyspf/config/tumgreyspf.conf'
 defaultConfigData = {
 		'debugLevel' : 0,
 		'defaultSeedOnly' : 0,
 		'defaultAllowTime' : 600,
-		'configPath' : 'file:///var/spool/tumgreyspf/config',
-		'greylistDir' : '/var/spool/tumgreyspf/data',
-		'spfqueryPath' : '/usr/local/lib/postfix/spfquery',
+		'configPath' : 'file:///var/local/lib/tumgreyspf/config',
+		'greylistDir' : '/var/local/lib/tumgreyspf/data',
+		'spfqueryPath' : '/usr/local/lib/tumgreyspf/spfquery',
 		}
 
 
@@ -241,7 +241,8 @@ def lookupConfig(configPath, msgData, configGlobal):
 							syslog.syslog('lookupConfig: Could not find %s address '
 									'from "%s", skipping' % ( cfgType, address ))
 						continue
-					local, domain = data
+					local = quoteAddress(data[0])
+					domain = quoteAddress(data[1])
 
 					#  load configs
 					path = os.path.join(basePath, cfgType)
