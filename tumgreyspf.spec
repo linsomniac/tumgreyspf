@@ -57,7 +57,8 @@ ln -s /usr/lib/tumgreyspf/tumgreyspf-configtest "$RPM_BUILD_ROOT"/usr/sbin
 ln -s /usr/lib/tumgreyspf/tumgreyspf-stat "$RPM_BUILD_ROOT"/usr/sbin
 
 #  set up crontab
-echo 0 0 * * * nobody /usr/lib/tumgreyspf/tumgreyspf-clean >/etc/cron.d/tumgreyspf
+echo 0 0 * * * nobody /usr/lib/tumgreyspf/tumgreyspf-clean \
+      >"$RPM_BUILD_ROOT"/etc/cron.d/tumgreyspf
 
 #  replace pieces in code that need to reflect new directories
 (
