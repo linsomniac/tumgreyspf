@@ -42,6 +42,7 @@ mkdir -p "$RPM_BUILD_ROOT"/usr/lib/tumgreyspf/
 mkdir -p "$RPM_BUILD_ROOT"/var/lib/tumgreyspf/config
 mkdir -p "$RPM_BUILD_ROOT"/var/lib/tumgreyspf/data
 mkdir -p "$RPM_BUILD_ROOT"/usr/sbin
+mkdir -p "$RPM_BUILD_ROOT"/etc/cron.d
 
 #  copy over files
 for file in tumgreyspf tumgreyspf-clean tumgreyspf-configtest \
@@ -113,6 +114,8 @@ fi
 %defattr(755,root,root)
 /usr/lib/tumgreyspf
 %dir /var/lib/tumgreyspf
-/var/lib/tumgreyspf/config
+%dir /var/lib/tumgreyspf/config
+%config /var/lib/tumgreyspf/config/tumgreyspf.conf
+%config /var/lib/tumgreyspf/config/__default__
 %attr(600,nobody,root) /var/lib/tumgreyspf/data
 %doc README README.QuickStart README.performance WHATSNEW TODO
