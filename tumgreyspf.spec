@@ -8,6 +8,7 @@ Name:          %{name}
 Version:       %{version}
 Release:       %{release}
 Copyright:     tummy.com, ltd.
+License:       GPL
 Group:         Applications/System
 URL:           http://www.tummy.com/krud/
 Source:        %{name}-%{version}.tar.gz
