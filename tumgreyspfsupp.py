@@ -3,7 +3,7 @@
 #  Copyright (c) 2004, Sean Reifschneider, tummy.com, ltd.
 #  All Rights Reserved.
 
-S_rcsid = '$Id: tumgreyspfsupp.py,v 1.2 2004-08-23 02:06:46 jafo Exp $'
+S_rcsid = '$Id: tumgreyspfsupp.py,v 1.3 2004-11-09 03:00:03 jafo Exp $'
 
 
 import syslog, os, sys, string, re, time, popen2, urllib, stat
@@ -17,6 +17,7 @@ defaultConfigData = {
 		'defaultAllowTime' : 600,
 		'configPath' : 'file:///var/local/lib/tumgreyspf/config',
 		'greylistDir' : '/var/local/lib/tumgreyspf/data',
+		'blackholeDir' : '/var/local/lib/tumgreyspf/blackhole',
 		'spfqueryPath' : '/usr/local/lib/tumgreyspf/spfquery',
 		}
 
@@ -98,7 +99,7 @@ def quoteAddress(s):
 	Returns the quoted address.'''
 
 	s = urllib.quote(s, '@_-+')
-	if s[0] == '.': s = '%2e' + s[1:]
+	if len(s) > 0 and s[0] == '.': s = '%2e' + s[1:]
 	return(s)
 
 
