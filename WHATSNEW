@@ -1,4 +1,9 @@
 ================================
+Version 1.01 -- Mon Aug 23, 2004
+
+Fixing a bug in tumgreyspf-install related to updating the time_limit
+
+================================
 Version 1.00 -- Sun Aug 22, 2004
 
 Extensive documentation.
