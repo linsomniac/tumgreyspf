@@ -7,7 +7,7 @@
 #  All Rights Reserved
 #  <jafo@tummy.com>
 
-S_rcsid = '$Id: tumgreyspf,v 1.2 2004-08-23 02:06:46 jafo Exp $'
+S_rcsid = '$Id: tumgreyspf,v 1.3 2004-10-13 03:26:24 jafo Exp $'
 
 
 import syslog, os, sys, string, re, time, popen2, urllib, stat
@@ -19,7 +19,7 @@ tumgreyspfsupp.setExceptHook()
 
 
 #############################################
-def spfcheck(data, configData, configGlobal):
+def spfcheck(data, configData, configGlobal):  #{{{1
 	debugLevel = configGlobal.get('debugLevel', 0)
 
 	ip = data.get('client_address')
@@ -91,7 +91,7 @@ def spfcheck(data, configData, configGlobal):
 
 
 ##################################################
-def greylistcheck(data, configData, configGlobal):
+def greylistcheck(data, configData, configGlobal):  #{{{1
 	greylistDir = configGlobal['greylistDir']
 
 	ip = data.get('client_address')
@@ -161,8 +161,44 @@ def greylistcheck(data, configData, configGlobal):
 	return(( None, None ))
 
 
-####################
-#  load config file
+###################################################
+def blackholecheck(data, configData, configGlobal):  #{{{1
+	blackholeDir = configGlobal['blackholeDir']
+
+	ip = data.get('client_address')
+	if ip == None:
+		return(( None, None ))
+	ipPath = string.join(string.split(ip, '.'), '/')
+	dir = os.path.join(blackholeDir, 'ips', ipPath)
+	
+	recipient = data.get('recipient')
+	if not recipient:
+		return(( None, None ))
+	recipient = tumgreyspfsupp.quoteAddress(recipient)
+
+	#  add blackhole
+	recipientPath = os.path.join(blackholeDir, 'addresses', recipient)
+	if os.path.exists(recipientPath):
+		if not os.path.exists(dir):
+			os.path.makedirs(dir)
+
+	#  check for existing blackhole entry
+	if os.path.exists(dir):
+		syslog.syslog('Blackholed: REMOTEIP="%s" HELO="%s" SENDER="%s" '
+				'RECIPIENT="%s" QUEUEID="%s"'
+				% ( data.get('client_address', '<UNKNOWN>'),
+					data.get('helo_name', '<UNKNOWN>'),
+					data.get('sender', '<UNKNOWN>'),
+					data.get('recipient', '<UNKNOWN>'),
+					data.get('queue_id', '<UNKNOWN>'), ) )
+
+		return(( 'reject', 'Service unavailable, blackholed.' ))
+
+	return(( None, None ))
+
+
+###################
+#  load config file  {{{1
 configFile = tumgreyspfsupp.defaultConfigFilename
 if len(sys.argv) > 1:
 	if sys.argv[1] in ( '-?', '--help', '-h' ):
@@ -171,7 +207,7 @@ if len(sys.argv) > 1:
 	configFile = sys.argv[1]
 configGlobal = tumgreyspfsupp.processConfigFile(filename = configFile)
 
-#  loop reading data
+#  loop reading data  {{{1
 debugLevel = configGlobal.get('debugLevel', 0)
 if debugLevel >= 2: syslog.syslog('Starting')
 data = {}
@@ -182,14 +218,14 @@ while 1:
 	line = string.rstrip(line)
 	if debugLevel >= 4: syslog.syslog('Read line: "%s"' % line)
 
-	#  end of entry
+	#  end of entry  {{{2
 	if not line:
 		if debugLevel >= 4: syslog.syslog('Found the end of entry')
 		configData = tumgreyspfsupp.lookupConfig(configGlobal.get('configPath'),
 				data, configGlobal)
 		if debugLevel >= 2: syslog.syslog('Config: %s' % str(configData))
 
-		#  run the checkers
+		#  run the checkers  {{{3
 		checkerValue = None
 		checkerReason = None
 		for checkerType in string.split(configData.get('CHECKERS', ''), ','):
@@ -206,8 +242,12 @@ while 1:
 					checkerValue = None
 					checkerReason = None
 				if checkerValue != None: break
+			elif checkerType == 'blackhole':
+				checkerValue, checkerReason = blackholecheck(data, configData,
+						configGlobal)
+				if checkerValue != None: break
 
-		#  handle results
+		#  handle results  {{{3
 		if checkerValue == 'defer':
 			sys.stdout.write('action=defer_if_permit %s\n\n' % checkerReason)
 
@@ -217,18 +257,18 @@ while 1:
 		else:
 			sys.stdout.write('action=dunno\n\n')
 
-		#  end of record
+		#  end of record  {{{3
 		sys.stdout.flush()
 		data = {}
 		continue
 
-	#  parse line
+	#  parse line  {{{2
 	m = lineRx.match(line)
 	if not m: 
 		syslog.syslog('ERROR: Could not match line "%s"' % line)
 		continue
 
-	#  save the string
+	#  save the string  {{{2
 	key = m.group(1)
 	value = m.group(2)
 	if key not in [ 'protocol_state', 'protocol_name', 'queue_id' ]:
