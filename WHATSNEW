@@ -1,3 +1,7 @@
+================================
+Version 1.00 -- Sun Aug 22, 2004
+
+Extensive documentation.
 Added tumgreyspf-install.
 Added tumgreyspf-stat to show status of greylist data directory.
 Config file name can now be specified as argument to program.
