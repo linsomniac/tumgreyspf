@@ -1,4 +1,5 @@
 tumgreyspf README
+$Id: README,v 1.4 2004-08-23 02:23:33 jafo Exp $
 =================
 
 This is tumgreyspf, an external policy checker for the postfix mail
@@ -7,6 +8,11 @@ records to determine if email should be accepted by your server.
 
 It uses the file-system as it's database, no additional database is
 required to use it.
+
+LICENSE
+
+   tumgreyspf is free for non-commercial use, and requires a reasonable
+   licensing fee if used in a commercial environment.
 
 BENEFITS
 
