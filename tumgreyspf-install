@@ -176,10 +176,14 @@ for linenum in xrange(len(mainData)):
 	line = mainData[linenum]
 	m = re.match(r'^tumgreyspf_time_limit\s*=\s*(\d+).*$', line)
 	if m:
+		if G_verbose:
+			print 'Changing tumgreyspf_time_limit to %s' % tumgreyspf_time_limit
 		mainData[linenum] = string.replace(line, m.group(1),
 				tumgreyspf_time_limit)
 		found = 1
 if not found:
+	if G_verbose:
+		print 'Adding tumgreyspf_time_limit line'
 	mainData.append('\n')
 	mainData.append('#  increase the policy timeout for tumgreyspf\n')
 	mainData.append('tumgreyspf_time_limit = %s\n' % tumgreyspf_time_limit)
