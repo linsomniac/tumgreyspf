@@ -7,7 +7,6 @@ Summary:       Powerful, easy to use spam protection.
 Name:          %{name}
 Version:       %{version}
 Release:       %{release}
-Copyright:     tummy.com, ltd.
 License:       GPL
 Group:         Applications/System
 URL:           http://www.tummy.com/krud/
