@@ -1,0 +1,26 @@
+I have run tests of this code on two machines to determine the performance
+it is capable of.  The first is my development laptop, a 1.2GHz Celeron
+(with cpufreq pushing it down to 800MHz), running on the JFS filesystem.
+The other is our mail server, a 2.66Ghz P4 running on the XFS filesystem
+running on a two-drive RAID-1 storage system.  This RAID array was two
+7200RPM Hitachi 80GB SATA drives using a 3ware controller.
+
+Both machines had the "safe writing" disabled for maillog in syslog.conf
+(by prefixing the maillog path name with a "-").
+
+My test data was 50,756 greylist requests culled from the log files
+accumulated over a few days of actual traffic.  The test used greylisting
+first, and then SPF if greylisting did not block.  I believe that in most
+cases greylisting would be blocking.
+
+On the development laptop, it took 5 minutes 1 second, for an overall rate
+of 168 RCPTs per second.
+
+On the mail server, it took 2 minute 12 seconds, for an overall rate of 384
+RCPTs per second.
+
+These both seemed to be using 100% CPU time.  Obviously, with other mail
+processing going on there will be less CPU and disc bandwidth available for
+tumgreyspf.  However, greylisting is blocking well over 80% of incoming
+messages right now on our server.  Thus, there are around 5x fewer mesages
+being processed, leading to much more overall available resources.

@@ -1,0 +1,13 @@
+Added tumgreyspf-stat to show status of greylist data directory.
+Config file name can now be specified as argument to program.
+Split common routines out into tumgreyspfsupp.
+Added "tumgreyspf-clean".
+Added a README.performance file based on my testing.
+Added "tumgreyspf-configtest" program, which can be used to test a
+   configuration file without having to wait for tumgreyspf to be fired off
+   and log the config file failure.
+Added a master config file, /etc/tumgreyspf.conf
+No configuration of the main program is necessary now.
+Greylist data file ctime/atime is now updated when a new message comes in.
+Moving ip data from "data" into "data/client_address".
+Adding a log entry for when a message is accepted by greylist.

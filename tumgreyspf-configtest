@@ -1,0 +1,31 @@
+#!/usr/bin/env python2.2
+# vim: ts=3 sw=3 ai
+#
+#  Test the configuration file, report any errors
+#
+#  Copyright (c) 2004, Sean Reifschneider, tummy.com, ltd.
+#  All Rights Reserved
+#  <jafo@tummy.com>
+
+G_Id = '$Id: tumgreyspf-configtest,v 1.1.1.1 2004-08-09 03:33:34 jafo Exp $'
+
+import sys
+
+
+#  check arguments
+if len(sys.argv) != 2:
+	print 'ERROR: Configuration file must be specified as a command-line ' \
+			'argument.'
+	sys.exit(2)
+
+#  test load of config
+try:
+	execfile(sys.argv[1], {}, {})
+except Exception, e:
+	import traceback
+	etype, value, tb = sys.exc_info()
+	print ('Error reading config file "%s": %s'
+			% ( sys.argv[1], sys.exc_info()[1] ))
+	sys.exit(1)
+
+sys.exit(1)

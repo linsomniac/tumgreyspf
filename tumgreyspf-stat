@@ -1,0 +1,81 @@
+#!/usr/bin/env python
+#
+#  Display information about the entries in the greylist.
+#
+#  Copyright (c) 2004, Sean Reifschneider, tummy.com, ltd.
+#  All Rights Reserved
+#  <jafo@tummy.com>
+
+import os, re, string, syslog, sys, time
+sys.path.append('/usr/local/lib/tumgreyspf')
+import tumgreyspfsupp
+
+###################
+def syslogprint(s):
+	print s
+syslog.syslog = syslogprint
+
+
+##################################
+def visit(config, dirname, fileList):
+	ospathisfile = os.path.isfile
+	ospathjoin = os.path.join
+	base = config['greylistBasedir']
+	didUnlink = 0
+	for file in fileList:
+		path = ospathjoin(dirname, file)
+		if not ospathisfile(path): continue
+
+		recipient = file
+		relative = dirname[len(base):]
+		m = re.match(r'^/?(\d+)/(\d+)/(\d+)/(\d+)/greylist/(.*)$', relative)
+		if not m:
+			print 'Unknown path "%s" found in greylist directory.' % relative
+			continue
+		ip = string.join(m.groups()[:4], '.')
+		sender = m.groups()[4]
+
+		#  look up expration day
+		data = {
+				'envelope_sender' : tumgreyspfsupp.unquoteAddress(sender),
+				'envelope_recipient' : tumgreyspfsupp.unquoteAddress(recipient),
+				'client_address' : ip,
+				}
+		configData = tumgreyspfsupp.lookupConfig(config.get('configPath'),
+				data, config.copy())
+		expireTime = time.time() - (configData['GREYLISTEXPIREDAYS'] * 86400)
+
+		#  check
+		statData = os.stat(path)
+		mtime = statData[8]
+		ctime = statData[9]
+		now = time.time()
+
+		#  status information
+		stats = ''
+		if ctime < mtime:
+			stats = stats + 'Blocked,'
+		if mtime > now:
+			stats = stats + 'Pending,'
+		if stats:
+			stats = ' (%s)' % stats[:-1]
+
+		#  display information
+		print ('IP=%s SENDER=%s RECIPIENT=%s STARTS=%d LAST=%d EXPIRESIN=%s%s'
+				% ( ip, sender, recipient, now - mtime, now - ctime,
+					int(expireTime - now), stats ))
+
+
+############################
+#  main code
+config = tumgreyspfsupp.processConfigFile()
+greylistBasedir = os.path.join(config['greylistDir'], 'client_address')
+config['greylistBasedir'] = greylistBasedir
+try:
+	os.path.walk(greylistBasedir, visit, config)
+
+#  ignore interrupts and errors writing stdout
+except IOError, e:
+	if e.errno != 32: raise
+except KeyboardInterrupt:
+	pass

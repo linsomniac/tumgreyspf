@@ -1,0 +1,8 @@
+SPFSEEDONLY = 0
+GREYLISTTIME = 600
+CHECKERS = greylist,spf
+OTHERCONFIGS = client_address,envelope_sender,envelope_recipient
+
+#  The number of days after which, if no messages have come in, we will
+#  drop the greylist entry.
+GREYLISTEXPIREDAYS = 10.0

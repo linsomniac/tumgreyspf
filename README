@@ -1,0 +1,85 @@
+
+This is tumgreyspf, an external policy checker for the postfix mail 
+server. It can optionally greylist and/or use spfquery to check SPF
+records to determine if email should be accepted by your server. 
+
+It uses the filesystem as it's database, there is no database requirement. 
+
+REQUIREMENTS
+	python
+		http://www.python.org/
+	spfquery
+		http://www.libspf2.org/
+	journaling file system
+		lots of files and directories. 
+
+INSTALL
+
+	Copy the tumgreyspf python script to /usr/local/lib/postfix/
+	Add to your postfix master.cf:
+		
+		tumgreyspf  unix  -       n       n       -       -       spawn
+		user=nobody argv=/usr/local/lib/postfix/tumgreyspf
+
+	Create the config and data directories:
+
+	mkdir -p /var/spool/tumgreyspf/data
+	chown nobody /var/spool/tumgreyspf/data
+
+	mkdir -p /var/spool/tumgreyspf/config
+	chown nobody /var/spool/tumgreyspf/config
+
+	Copy the default config file into place:
+	cp __default__ /var/spool/tumgreyspf/config/
+
+	Edit the __default__ file
+
+	In main.cf add to the end of smtpd_sender_restrictions
+	check_policy_service unix:private/tumgreyspf
+
+	If the libspf2 or perl SPF module are installed, spf checks will be 
+	available. Otherwise spf will be disabled. 
+
+	restart and enjoy. 
+
+CONFIG
+
+	Configuration is read from most specific to least specific. 
+
+	There is the __default__ file at the top level that
+	is used as a default for all decisions. If you wish to disable 
+	SPF or greylist for a sepcific IP/subnet/sender/recipient, 
+	you simply make a __default__ file in a subdirectory under 
+	config matching the entity you wish to match, with SPF or other 
+	checks disabled.  
+
+	For example, if you want to disable SPF queries for hosts in 192.168.10.0/24:
+	mkdir /var/spool/tumgreyspf/config/client_address/192/168/10/
+	edit /var/spool/tumgreyspf/config/client_address/192/168/10/__default__
+	
+SPFSEEDONLY=0
+GREYLISTTIME=300
+CHECKERS=
+OTHERCONFIGS=
+
+	That sets checkers and otherconfigs to nothing, so for that subnet
+	no checks are done. All more specific hosts are still using the top level 
+	__default__
+
+	SPFSEEDONLY=1 will only check SPF, not use it for decisions. 
+	GREYLISTTIME is the amount of time to wait before allowing a 
+	connection to accept email. 
+	CHECKERS is one of the set of 'spf' and 'greylist'. This is a 
+	list of checks to perform. Note that they are done in the listed
+	order. 
+	OTHERCONFIGS is a list of directories under the top config directory
+	that should be checked for other config files. This is one of 
+	client_address,envelope_sender,envelope_recipient
+	client_address is the IP address of the sending host. 
+	envelope_sender is the email address that is in the From line
+	envelope_recipient is the email address that is in the To line. 
+
+LOGGING
+
+	tumgreyspf will log messages to syslog about it's activities. 
+	

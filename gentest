@@ -1,0 +1,13 @@
+#!/usr/bin/env python
+#
+#  Read a log file from stdin, generate output which can be passed
+#  to tumgreyspf to test performance.
+
+import re, sys
+
+for line in sys.stdin.xreadlines():
+	m = re.match(r'^.* REMOTEIP="([\d.]+)".* HELO="([^"]+).* SENDER="([^"]+)".* '
+			r'RECIPIENT="([^"]+)".*$', line)
+	if not m: continue
+
+	sys.stdout.write('request=smtpd_access_policy\nprotocol_state=RCPT\nprotocol_name=SMTP\nclient_address=%s\nhelo_name=%s\nsender=%s\nrecipient=%s\nqueue_id=\nsize=0\nsasl_method=\nsasl_username=\nsasl_sender=\n\n' % m.groups())
