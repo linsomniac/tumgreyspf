@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 #
-#  Copyright (c) 2004, Sean Reifschneider, tummy.com, ltd.
+#  Copyright (c) 2004-2005, Sean Reifschneider, tummy.com, ltd.
 #  All Rights Reserved.
 
-S_rcsid = '$Id: tumgreyspfsupp.py,v 1.3 2004-11-09 03:00:03 jafo Exp $'
+S_rcsid = '$Id: tumgreyspfsupp.py,v 1.4 2005-03-15 17:03:45 jafo Exp $'
 
 
 import syslog, os, sys, string, re, time, popen2, urllib, stat

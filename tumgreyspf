@@ -3,11 +3,11 @@
 #
 #  Log information about incoming SMTP connections.
 #
-#  Copyright (c) 2004, Sean Reifschneider, tummy.com, ltd.
+#  Copyright (c) 2004-2005, Sean Reifschneider, tummy.com, ltd.
 #  All Rights Reserved
 #  <jafo@tummy.com>
 
-S_rcsid = '$Id: tumgreyspf,v 1.3 2004-10-13 03:26:24 jafo Exp $'
+S_rcsid = '$Id: tumgreyspf,v 1.4 2005-03-15 17:03:45 jafo Exp $'
 
 
 import syslog, os, sys, string, re, time, popen2, urllib, stat

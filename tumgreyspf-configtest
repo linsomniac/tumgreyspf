@@ -3,11 +3,11 @@
 #
 #  Test the configuration file, report any errors
 #
-#  Copyright (c) 2004, Sean Reifschneider, tummy.com, ltd.
+#  Copyright (c) 2004-2005, Sean Reifschneider, tummy.com, ltd.
 #  All Rights Reserved
 #  <jafo@tummy.com>
 
-G_Id = '$Id: tumgreyspf-configtest,v 1.1.1.1 2004-08-09 03:33:34 jafo Exp $'
+G_Id = '$Id: tumgreyspf-configtest,v 1.2 2005-03-15 17:03:45 jafo Exp $'
 
 import sys
 
