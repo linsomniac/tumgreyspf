@@ -1,16 +1,36 @@
+tumgreyspf README
+=================
 
-This is tumgreyspf, an external policy checker for the postfix mail 
-server. It can optionally greylist and/or use spfquery to check SPF
-records to determine if email should be accepted by your server. 
+This is tumgreyspf, an external policy checker for the postfix mail
+server.  It can optionally greylist and/or use spfquery to check SPF
+records to determine if email should be accepted by your server.
 
-It uses the file-system as it's database, there is no database requirement. 
+It uses the file-system as it's database, no additional database is
+required to use it.
+
+BENEFITS
+
+   High Accuracy
+      Because of it's design, legitimate e-mail is never trapped or
+      rejected.  Only spam and viruses are caught.
+
+   Low Maintenance
+      tumgreyspf requires no regular attention from the administrator to
+      remain effective.
+
+   Easy Setup
+      Installation should be as easy as installing an RPM or Debian package
+      on your system.  There are few additional requirements.  Extensive
+      time has been devoted to installation automation and documentation.
 
 REQUIREMENTS
 
    Python
       http://www.python.org/
+
    Postfix 2.1 or above
       http://www.postfix.org/
+
    Optional: spfquery or pyspf
       http://www.libspf2.org/
       http://spf.pobox.com/downloads.html
