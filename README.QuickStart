@@ -1,0 +1,13 @@
+Quick Start Guide for tumgreyspf
+$Id: README.QuickStart,v 1.1 2004-08-23 02:24:17 jafo Exp $
+================================
+
+If you have installed tumgreyspf from an RPM or Debian package, you should
+be up and running.  You may wish to see the "TESTING" section of "README"
+for instructions on how to test the greylist/SPF setup.  For more
+information on configuration, please see the "CONFIGURATION" section of
+"README".
+
+If you are not installing from RPM/Debian packages, please see the
+"QUICK-START INSTALL" section of "README" for instructions on manually
+installing tumgreyspf.
