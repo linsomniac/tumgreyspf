@@ -1,5 +1,5 @@
 tumgreyspf README
-$Id: README,v 1.5 2004-08-23 02:55:09 jafo Exp $
+$Id: README,v 1.6 2005-04-14 22:03:15 jafo Exp $
 =================
 
 This is tumgreyspf, an external policy checker for the postfix mail
@@ -11,8 +11,7 @@ required to use it.
 
 LICENSE
 
-   tumgreyspf is free for non-commercial use, and requires a reasonable
-   licensing fee if used in a commercial environment.
+   tumgreyspf is licensed under the GPL.
 
 BENEFITS
 
