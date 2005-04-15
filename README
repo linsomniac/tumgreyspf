@@ -1,5 +1,5 @@
 tumgreyspf README
-$Id: README,v 1.6 2005-04-14 22:03:15 jafo Exp $
+$Id: README,v 1.7 2005-04-15 20:14:41 jafo Exp $
 =================
 
 This is tumgreyspf, an external policy checker for the postfix mail
@@ -46,23 +46,12 @@ REQUIREMENTS
 
 QUICK-START INSTALL
 
-   The program "tumgreyspf-install" is provided which tries to
-   automatically do everything necessary to get postfix working with
-   tumgreyspf.  If "tumgreyspf-install" does not work for you, please let
-   us know so we can fix it.
-
-   If you installed from the RPM or Debian package, "tumgreyspf-install"
-   has already been run.  To see the results of the install, run "grep
-   tumgreyspf-install /var/log/messages".
-
-   "tumgreyspf-install" makes backup copies of the "master.cf" and
-   "main.cf" files before modifying them.  To undo the install, copy the
-   "main.cf.tumgreyspf" and "master.cf.tumgreyspf" files back to "main.cf"
-   and "master.cf" (respectively) and restart Postfix.
-
-   If "tumgreyspf-install" does not work for you, or you wish to manually
-   install tumgreyspf, please see the "INSTALL INSTRUCTIONS" later in
-   this document.
+   There is a script called "tumgreyspf-install" provided with this
+   software.  I have had a report that it didn't work, so I would recommend
+   against running it, instead see the "INSTALL INSTRUCTIONS" section at
+   the end of this document for manual installation instructions.  The
+   install process is fairly easy, requiring some simple changes to the
+   Postfix configuration files.
 
 LOGGING
 

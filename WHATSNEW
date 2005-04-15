@@ -1,4 +1,12 @@
 ================================
+Version 1.05 -- Thu Apr 15, 2005
+
+Got a report from Stephen Warren that "tumgreyspf-install" does not work in
+      a number of ways with his pre-existing postfix configuration files.
+      I've changed the README to recommend doing a manual install instead
+      of automatic.
+
+================================
 Version 1.04 -- Thu Apr 14, 2005
 
 Changed the README to reflect GPL status.
