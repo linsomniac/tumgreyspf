@@ -215,7 +215,7 @@ if not found:
 	fp.write('\n')
 	fp.write('#  policy for tumgreyspf\n')
 	fp.write('tumgreyspf  unix  -       n       n       -       -       spawn\n')
-	fp.write('user=%s argv=%s\n' % ( tumgreyspf_user, tumgreyspf_path ))
+	fp.write('   user=%s argv=%s\n' % ( tumgreyspf_user, tumgreyspf_path ))
 	fp.close()
 
 ##################

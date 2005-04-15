@@ -1,6 +1,8 @@
 ================================
-Version 1.05 -- Thu Apr 15, 2005
+Version 1.06 -- Thu Apr 15, 2005
 
+Changing the install script to indent second line of master.cf file
+      (reported by Stephen Warren)
 Got a report from Stephen Warren that "tumgreyspf-install" does not work in
       a number of ways with his pre-existing postfix configuration files.
       I've changed the README to recommend doing a manual install instead
