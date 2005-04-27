@@ -7,7 +7,7 @@
 #  All Rights Reserved
 #  <jafo@tummy.com>
 
-S_rcsid = '$Id: tumgreyspf,v 1.4 2005-03-15 17:03:45 jafo Exp $'
+S_rcsid = '$Id: tumgreyspf,v 1.5 2005-04-27 22:52:53 jafo Exp $'
 
 
 import syslog, os, sys, string, re, time, popen2, urllib, stat
@@ -50,7 +50,7 @@ def spfcheck(data, configData, configGlobal):  #{{{1
 		spfResult = string.strip(ret[0])
 		spfReason = string.strip(ret[2])
 		if debugLevel:
-			syslog.syslog('spfcheck: pyspf result: "%s"' % str(spfData))
+			syslog.syslog('spfcheck: pyspf result: "%s"' % str(ret))
 	except ImportError:
 		pass
 

@@ -1,4 +1,10 @@
 ================================
+Version 1.07 -- Wed Apr 27, 2005
+
+Debugging in tumgreyspf could cause tracebacks due to logging the wrong
+      value.  Fix provided by Stephen Warren.
+
+================================
 Version 1.06 -- Thu Apr 15, 2005
 
 Changing the install script to indent second line of master.cf file
