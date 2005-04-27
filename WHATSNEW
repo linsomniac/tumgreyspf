@@ -1,4 +1,10 @@
 ================================
+Version 1.08 -- Wed Apr 27, 2005
+
+Changed the regex used for processing the files, fixing problems with
+      addresses that have "=" in them.  Fix provided by Stephen Warren
+
+================================
 Version 1.07 -- Wed Apr 27, 2005
 
 Debugging in tumgreyspf could cause tracebacks due to logging the wrong

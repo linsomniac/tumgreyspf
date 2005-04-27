@@ -7,7 +7,7 @@
 #  All Rights Reserved
 #  <jafo@tummy.com>
 
-S_rcsid = '$Id: tumgreyspf,v 1.5 2005-04-27 22:52:53 jafo Exp $'
+S_rcsid = '$Id: tumgreyspf,v 1.6 2005-04-27 23:23:31 jafo Exp $'
 
 
 import syslog, os, sys, string, re, time, popen2, urllib, stat
@@ -211,7 +211,7 @@ configGlobal = tumgreyspfsupp.processConfigFile(filename = configFile)
 debugLevel = configGlobal.get('debugLevel', 0)
 if debugLevel >= 2: syslog.syslog('Starting')
 data = {}
-lineRx = re.compile(r'^\s*(\S+)\s*=(.*)$')
+lineRx = re.compile(r'^\s*([^=\s]+)\s*=(.*)$')
 while 1:
 	line = sys.stdin.readline()
 	if not line: break
