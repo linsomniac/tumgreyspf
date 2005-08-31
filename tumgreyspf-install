@@ -132,7 +132,7 @@ if startLinenum == None:
 	startLinenum = len(mainData)
 	endLinenum = len(mainData)
 	smtpd_recipient_restrictions = [
-			'smtpd_recipient_restrictions =\n',
+			'smtpd_recipient_restrictions = \\n',
 			'   reject_unauth_destination\n',
 			]
 	if G_verbose: print 'No smtpd_recipient_restrictions found, adding.'

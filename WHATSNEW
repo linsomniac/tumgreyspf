@@ -1,4 +1,13 @@
 ================================
+Version 1.09 -- Wed Aug 31, 2005
+
+Changing the install instructions to use different syntax for the main.cf
+      file.  (Reported by Ferdinand Schmid)
+Modifying the python version used by the programs.  System was using
+      "python2.2", changed to just use "python".
+      (Reported by Ferdinand Schmid)
+
+================================
 Version 1.08 -- Wed Apr 27, 2005
 
 Changed the regex used for processing the files, fixing problems with

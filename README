@@ -1,5 +1,5 @@
 tumgreyspf README
-$Id: README,v 1.7 2005-04-15 20:14:41 jafo Exp $
+$Id: README,v 1.8 2005-08-31 17:20:30 jafo Exp $
 =================
 
 This is tumgreyspf, an external policy checker for the postfix mail
@@ -309,17 +309,17 @@ INSTALL INSTRUCTIONS
 
       So, for example, a minimal "smtpd_sender_restrictions" may look like:
 
-         smtpd_sender_restrictions =
-            reject_unauth_destination
+         smtpd_sender_restrictions = \
+            reject_unauth_destination, \
             check_policy_service unix:private/tumgreyspf
 
       However, for better spam protection you may wish to use:
 
-         smtpd_recipient_restrictions =
-            permit_mynetworks
-            reject_non_fqdn_hostname
-            reject_invalid_hostname
-            reject_unauth_destination
+         smtpd_recipient_restrictions = \
+            permit_mynetworks, \
+            reject_non_fqdn_hostname, \
+            reject_invalid_hostname, \
+            reject_unauth_destination, \
             check_policy_service unix:private/tumgreyspf
 
       You will also need to have a line in the main.cf which reads:
