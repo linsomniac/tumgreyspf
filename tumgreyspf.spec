@@ -97,6 +97,7 @@ echo '0 0 * * * nobody /usr/lib/tumgreyspf/tumgreyspf-clean' \
 %files
 %defattr(755,root,root)
 /usr/lib/tumgreyspf
+/usr/sbin/*
 %dir /var/lib/tumgreyspf
 %dir /var/lib/tumgreyspf/config
 %config /var/lib/tumgreyspf/config/tumgreyspf.conf
