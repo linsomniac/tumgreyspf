@@ -7,7 +7,7 @@
 #  All Rights Reserved
 #  <jafo@tummy.com>
 
-S_rcsid = '$Id: tumgreyspf,v 1.7 2005-08-31 17:20:30 jafo Exp $'
+S_rcsid = '$Id: tumgreyspf,v 1.8 2005-09-30 20:47:02 jafo Exp $'
 
 
 import syslog, os, sys, string, re, time, popen2, urllib, stat
@@ -76,7 +76,7 @@ def spfcheck(data, configData, configGlobal):  #{{{1
 		spfReason = string.strip(spfData[1])
 
 	#  read result
-	if spfResult == 'fail':
+	if spfResult == 'fail' or spfResult == 'deny':
 		syslog.syslog('SPF fail: REMOTEIP="%s" HELO="%s" SENDER="%s" '
 				'RECIPIENT="%s" QUEUEID="%s" REASON="%s"'
 				% ( data.get('client_address', '<UNKNOWN>'),
@@ -125,6 +125,17 @@ def greylistcheck(data, configData, configGlobal):  #{{{1
 		mtime = now + allowTime
 		os.utime(path, ( now, mtime ))
 
+		if configGlobal.get('defaultSeedOnly'):
+			syslog.syslog(
+					'Training greylisting: REMOTEIP="%s" HELO="%s" SENDER="%s" '
+					'RECIPIENT="%s" QUEUEID="%s"'
+					% ( data.get('client_address', '<UNKNOWN>'),
+						data.get('helo_name', '<UNKNOWN>'),
+						data.get('sender', '<UNKNOWN>'),
+						data.get('recipient', '<UNKNOWN>'),
+						data.get('queue_id', '<UNKNOWN>'), ) )
+			return(( None, None ))
+
 		syslog.syslog('Initial greylisting: REMOTEIP="%s" HELO="%s" SENDER="%s" '
 				'RECIPIENT="%s" QUEUEID="%s"'
 				% ( data.get('client_address', '<UNKNOWN>'),
@@ -139,7 +150,7 @@ def greylistcheck(data, configData, configGlobal):  #{{{1
 	mtime = os.stat(path)[8]
 	now = time.time()
 	os.utime(path, ( now, mtime ))
-	if mtime > now:
+	if mtime > now and not configGlobal.get('defaultSeedOnly'):
 		syslog.syslog('Pending greylisting: REMOTEIP="%s" HELO="%s" SENDER="%s" '
 				'RECIPIENT="%s" QUEUEID="%s"'
 				% ( data.get('client_address', '<UNKNOWN>'),

@@ -1,4 +1,12 @@
 ================================
+Version 1.10 -- Fri Sep 30, 2005
+
+defaultSeedOnly was not implemented, Sean E. Millichamp provided a patch to
+      implement it.
+Some SPF versions return "deny" instead of "fail".  Sean E. Millichamp
+      supplied a patch which treats both responses the same.
+
+================================
 Version 1.09 -- Wed Aug 31, 2005
 
 Changing the install instructions to use different syntax for the main.cf
