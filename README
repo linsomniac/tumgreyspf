@@ -1,5 +1,5 @@
 tumgreyspf README
-$Id: README,v 1.9 2005-10-01 08:12:33 jafo Exp $
+$Id: README,v 1.10 2005-10-01 08:14:48 jafo Exp $
 =================
 
 This is tumgreyspf, an external policy checker for the postfix mail
@@ -70,6 +70,11 @@ NOTE BEFORE YOU USE TUMGREYSPF
    extremely good results and absolutely no problems, however I do
    acknowledge that there is a potential for problems.  Read the above URL
    for more details on preventing these problems.
+
+   Over the last 18 months that it's been in use, and more than a year that
+   it's been publicly available, I've received many responses saying that
+   it worked great, and one blog post reporting the above problems.
+   tumgreyspf may not be for everyone, but many people do find it useful.
 
 QUICK-START INSTALL
 
