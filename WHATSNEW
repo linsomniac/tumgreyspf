@@ -1,4 +1,10 @@
 ================================
+Version 1.11 -- Sat Oct 01, 2005
+
+Adding documentation about file-system problems when using ext2/ext3
+      and how to avoid them.
+
+================================
 Version 1.10 -- Fri Sep 30, 2005
 
 defaultSeedOnly was not implemented, Sean E. Millichamp provided a patch to

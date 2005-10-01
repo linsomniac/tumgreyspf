@@ -1,5 +1,5 @@
 tumgreyspf README
-$Id: README,v 1.8 2005-08-31 17:20:30 jafo Exp $
+$Id: README,v 1.9 2005-10-01 08:12:33 jafo Exp $
 =================
 
 This is tumgreyspf, an external policy checker for the postfix mail
@@ -43,6 +43,33 @@ REQUIREMENTS
       http://www.libspf2.org/
       http://spf.pobox.com/downloads.html
       http://www.wayforward.net/spf/
+
+NOTE BEFORE YOU USE TUMGREYSPF
+
+   tumgreyspf stores the greylist data in the file-system using many small
+   files.  This has a few benefits, namely that you do not need to install
+   or configure any database software.  It also makes you immune to to
+   database corruption issues that other greylist systems have.
+
+   However, this does mean that if not configured properly you may
+   experience extremely poor performance.  There are details in one of my
+   blog posts:
+
+      http://www.tummy.com/journals/entries/jafo_20051001_003419
+
+   However, the short answer is that you need to be careful about blocking
+   known bad recipient and sender addresses in Postfix before handing
+   messages off to tumgreyspf, and you probably should configure SPF to be
+   checked before greylisting.
+
+   If you are going to be storing your tumgreyspf database on an "ext2" or
+   "ext3" file-system, you have to be particularly careful about this
+   problem.
+
+   I have run a number of production e-mail servers using this with
+   extremely good results and absolutely no problems, however I do
+   acknowledge that there is a potential for problems.  Read the above URL
+   for more details on preventing these problems.
 
 QUICK-START INSTALL
 
@@ -268,6 +295,9 @@ INSTALL INSTRUCTIONS
 
    CRONTAB
 
+      WARNING: Make *SURE* you do this step, as not cleaning out the
+      database may result in resource exhaustion in your file-system.
+
       Next, you will need to add a cron job which runs daily to clean out
       the the expired SPF entries.  On many systems, there is a
       "/etc/cron.d" directory, and the following can be be used to add an
@@ -313,7 +343,14 @@ INSTALL INSTRUCTIONS
             reject_unauth_destination, \
             check_policy_service unix:private/tumgreyspf
 
-      However, for better spam protection you may wish to use:
+      However, for better spam protection you may wish to use (at the risk
+      of rejecting some e-mail you might otherwise want):
+
+         smtpd_sender_restrictions = \
+            reject_unknown_sender_domain, \
+            reject_non_fqdn_sender, \
+            reject_unauth_destination, \
+            check_policy_service unix:private/tumgreyspf
 
          smtpd_recipient_restrictions = \
             permit_mynetworks, \
@@ -321,6 +358,14 @@ INSTALL INSTRUCTIONS
             reject_invalid_hostname, \
             reject_unauth_destination, \
             check_policy_service unix:private/tumgreyspf
+
+         smtpd_helo_restrictions =
+            permit_mynetworks, \
+            check_helo_access hash:/etc/postfix/access-helo, \
+            reject_non_fqdn_hostname
+
+      Please see the Postfix documentation (Google.com knows where it is)
+      for more information on the implications of the above.
 
       You will also need to have a line in the main.cf which reads:
 
@@ -331,6 +376,11 @@ INSTALL INSTRUCTIONS
       "smtpd_recipient_restrictions" configuration.
 
    SPF INSTALLATION
+
+      NOTE: SPF is optional, but it's use, particularly it's use before
+      greylisting, will help reduce spam and will reduce the size of the
+      greylist database.  This may prevent or lessen the problems mentioned
+      in the "NOTE BEFORE YOU USE TUMGREYSPF" section.
 
       tumgreyspf can also use an external SPF program to do SPF lookups.
       You can use any of the following:
