@@ -7,7 +7,7 @@
 #  All Rights Reserved
 #  <jafo@tummy.com>
 
-S_rcsid = '$Id: tumgreyspf,v 1.8 2005-09-30 20:47:02 jafo Exp $'
+S_rcsid = '$Id: tumgreyspf,v 1.9 2006-02-02 20:48:25 jafo Exp $'
 
 
 import syslog, os, sys, string, re, time, popen2, urllib, stat
@@ -97,7 +97,9 @@ def greylistcheck(data, configData, configGlobal):  #{{{1
 	ip = data.get('client_address')
 	if ip == None:
 		return(( None, None ))
-	ipPath = string.join(string.split(ip, '.'), '/')
+	ipBytes = string.split(ip, '.')
+	if configGlobal['ignoreLastByte'] > 0: ipBytes = ipBytes[:-1]
+	ipPath = string.join(ipBytes, '/')
 	
 	sender = data.get('sender')
 	recipient = data.get('recipient')

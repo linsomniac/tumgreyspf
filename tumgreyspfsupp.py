@@ -3,7 +3,7 @@
 #  Copyright (c) 2004-2005, Sean Reifschneider, tummy.com, ltd.
 #  All Rights Reserved.
 
-S_rcsid = '$Id: tumgreyspfsupp.py,v 1.4 2005-03-15 17:03:45 jafo Exp $'
+S_rcsid = '$Id: tumgreyspfsupp.py,v 1.5 2006-02-02 20:48:25 jafo Exp $'
 
 
 import syslog, os, sys, string, re, time, popen2, urllib, stat
@@ -19,6 +19,7 @@ defaultConfigData = {
 		'greylistDir' : '/var/local/lib/tumgreyspf/data',
 		'blackholeDir' : '/var/local/lib/tumgreyspf/blackhole',
 		'spfqueryPath' : '/usr/local/lib/tumgreyspf/spfquery',
+		'ignoreLastByte' : 0,
 		}
 
 

@@ -1,4 +1,12 @@
 ================================
+Version 1.12 -- Thu Feb 02, 2006
+
+A patch from Scott Scriven which implements a new setting,
+      "ignoreLastByte".  When set, the last byte of the IP address is
+      ignored so that mail servers in a pool of the same /24 network block
+      can more easily get mail through.  This defaults to off.
+
+================================
 Version 1.11 -- Sat Oct 01, 2005
 
 Adding documentation about file-system problems when using ext2/ext3
