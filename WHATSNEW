@@ -1,4 +1,10 @@
 ================================
+Version 1.13 -- Sun Feb 05, 2006
+
+Another patch from Scott Scriven to fix the tumgreyspf-clean program for
+      the "ignoreLastByte" patch from Thursday.
+
+================================
 Version 1.12 -- Thu Feb 02, 2006
 
 A patch from Scott Scriven which implements a new setting,
