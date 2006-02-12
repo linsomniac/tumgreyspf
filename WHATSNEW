@@ -1,4 +1,9 @@
 ================================
+Version 1.14 -- Sun Feb 12, 2006
+
+Fixing a bug with SPF checking and a traceback.  Reported by Simon Bellwood.
+
+================================
 Version 1.13 -- Sun Feb 05, 2006
 
 Another patch from Scott Scriven to fix the tumgreyspf-clean program for

@@ -7,7 +7,7 @@
 #  All Rights Reserved
 #  <jafo@tummy.com>
 
-S_rcsid = '$Id: tumgreyspf,v 1.9 2006-02-02 20:48:25 jafo Exp $'
+S_rcsid = '$Id: tumgreyspf,v 1.10 2006-02-12 22:03:38 jafo Exp $'
 
 
 import syslog, os, sys, string, re, time, popen2, urllib, stat
@@ -35,9 +35,9 @@ def spfcheck(data, configData, configGlobal):  #{{{1
 	#  if no helo name sent, use domain from sender
 	helo = data.get('helo_name')
 	if not helo:
-		data = string.split(sender, '@', 1)
-		if len(data) <  2: helo = 'unknown'
-		else: helo = data[1]
+		foo = string.split(sender, '@', 1)
+		if len(foo) <  2: helo = 'unknown'
+		else: helo = foo[1]
 
 	#  start query
 	spfResult = None
