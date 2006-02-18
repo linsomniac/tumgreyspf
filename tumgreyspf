@@ -7,7 +7,7 @@
 #  All Rights Reserved
 #  <jafo@tummy.com>
 
-S_rcsid = '$Id: tumgreyspf,v 1.10 2006-02-12 22:03:38 jafo Exp $'
+S_rcsid = '$Id: tumgreyspf,v 1.11 2006-02-18 22:41:28 jafo Exp $'
 
 
 import syslog, os, sys, string, re, time, popen2, urllib, stat
@@ -146,7 +146,8 @@ def greylistcheck(data, configData, configGlobal):  #{{{1
 					data.get('recipient', '<UNKNOWN>'),
 					data.get('queue_id', '<UNKNOWN>'), ) )
 
-		return(( 'defer', 'Service unavailable, greylisted.' ))
+				return(( 'defer', 'Service unavailable, greylisted '
+						'(http://projects.puremagic.com/greylisting/).' ))
 
 	#  is it time to allow yet
 	mtime = os.stat(path)[8]
