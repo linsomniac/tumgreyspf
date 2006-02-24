@@ -1,4 +1,11 @@
 ================================
+Version 1.16 -- Fri Feb 24, 2006
+
+1.15 had a bug in indentation.  Ugh.  Reported by Benjamin Derry.
+Adding a README-RPM with instructions for after the RPM install.
+      Suggested by Benjamin Derry
+
+================================
 Version 1.15 -- Sat Feb 18, 2006
 
 Adding a link to the greylisting URL in the initial greylist message.

@@ -1,0 +1,8 @@
+Once you install the RPM, you need to configure Postfix to use tumgreyspf.
+This is so that installing the RPM doesn't risk breaking an existing mail
+system.
+
+After installing the RPM, you will need to read the README and follow
+either the QUICKSTART INSTALL.  Or, for more detailed installation
+instructions, go to the INSTALL section and start with the CONFIGURING
+POSTFIX.
