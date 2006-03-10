@@ -1,3 +1,6 @@
+Changing the __default__.dist file to list SPF first, since the
+documentation recommends it be set that way.  Suggested by Benjamin Derry.
+
 ================================
 Version 1.16 -- Fri Feb 24, 2006
 

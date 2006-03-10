@@ -1,6 +1,6 @@
 SPFSEEDONLY = 0
 GREYLISTTIME = 600
-CHECKERS = greylist,spf
+CHECKERS = spf,greylist
 OTHERCONFIGS = client_address,envelope_sender,envelope_recipient
 
 #  The number of days after which, if no messages have come in, we will
