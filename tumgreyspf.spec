@@ -103,5 +103,5 @@ echo '0 0 * * * nobody /usr/lib/tumgreyspf/tumgreyspf-clean' \
 %config /var/lib/tumgreyspf/config/tumgreyspf.conf
 %config /var/lib/tumgreyspf/config/__default__
 %attr(700,nobody,root) /var/lib/tumgreyspf/data
-/etc/cron.d/tumgreyspf
+%attr(644,root,root) /etc/cron.d/tumgreyspf
 %doc README README.QuickStart README.performance WHATSNEW TODO README-RPM

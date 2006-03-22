@@ -1,5 +1,11 @@
+================================
+Version 1.17 -- Tue Mar 21, 2006
+
 Changing the __default__.dist file to list SPF first, since the
-documentation recommends it be set that way.  Suggested by Benjamin Derry.
+      documentation recommends it be set that way.
+      Suggested by Benjamin Derry.
+Changing the spec file so that the cron.d file is mode 644.  Reported by
+      Stephen Warren.
 
 ================================
 Version 1.16 -- Fri Feb 24, 2006
