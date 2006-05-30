@@ -1,4 +1,11 @@
 ================================
+Version 1.18 -- Tue May 30, 2006
+
+Changed tumgreyspfsupp.py so that defaultConfigFilename is consistent with
+      example settings in other files.  This only impacts users who are not
+      installing via the RPM.  Reported by Luis Botero
+
+================================
 Version 1.17 -- Tue Mar 21, 2006
 
 Changing the __default__.dist file to list SPF first, since the

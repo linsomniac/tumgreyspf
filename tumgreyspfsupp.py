@@ -3,14 +3,11 @@
 #  Copyright (c) 2004-2005, Sean Reifschneider, tummy.com, ltd.
 #  All Rights Reserved.
 
-S_rcsid = '$Id: tumgreyspfsupp.py,v 1.5 2006-02-02 20:48:25 jafo Exp $'
-
-
 import syslog, os, sys, string, re, time, popen2, urllib, stat
 
 
 #  default values
-defaultConfigFilename = '/var/local/tumgreyspf/config/tumgreyspf.conf'
+defaultConfigFilename = '/var/local/lib/tumgreyspf/config/tumgreyspf.conf'
 defaultConfigData = {
 		'debugLevel' : 0,
 		'defaultSeedOnly' : 0,
