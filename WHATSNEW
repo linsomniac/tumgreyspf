@@ -1,4 +1,10 @@
 ================================
+Version 1.19 -- Wed Jun 07, 2006
+
+Mike Meyer noticed that unnecessary data was being written to the greylist
+      directory, potentially using unnecessary data blocks.  Corrected.
+
+================================
 Version 1.18 -- Tue May 30, 2006
 
 Changed tumgreyspfsupp.py so that defaultConfigFilename is consistent with
