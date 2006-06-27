@@ -7,7 +7,7 @@
 #  All Rights Reserved
 #  <jafo@tummy.com>
 
-S_rcsid = '$Id: tumgreyspf,v 1.13 2006-06-07 21:28:37 jafo Exp $'
+S_rcsid = '$Id: tumgreyspf,v 1.14 2006-06-27 00:21:48 jafo Exp $'
 
 
 import syslog, os, sys, string, re, time, popen2, urllib, stat
@@ -116,10 +116,17 @@ def greylistcheck(data, configData, configGlobal):  #{{{1
 		if not os.path.exists(dir):
 			#  if multiple messages come in at once
 			#  it can cause multiple makedirs
-			try:
-				os.makedirs(dir)
-			except OSError:
-				pass
+			for i in xrange(10):
+				try:
+					os.makedirs(dir)
+					break
+				except OSError:
+					time.sleep(1)
+
+			#  still didn't succeed
+			if not os.path.exists(dir):
+				syslog.syslog(('ERROR: Could not create directory after '
+						'10 seconds: "%s"') % dir)
 
 		#  create file
 		open(path, 'w').close()

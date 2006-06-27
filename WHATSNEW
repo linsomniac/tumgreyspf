@@ -1,3 +1,6 @@
+Try making greylisting data directory several times if we get OSError.
+      This helps work around a race condition.  Reported by Mike Meyer.
+
 ================================
 Version 1.19 -- Wed Jun 07, 2006
 
