@@ -7,7 +7,7 @@
 #  All Rights Reserved
 #  <jafo@tummy.com>
 
-S_rcsid = '$Id: tumgreyspf,v 1.14 2006-06-27 00:21:48 jafo Exp $'
+S_rcsid = '$Id: tumgreyspf,v 1.15 2006-06-27 00:24:24 jafo Exp $'
 
 
 import syslog, os, sys, string, re, time, popen2, urllib, stat
@@ -127,6 +127,8 @@ def greylistcheck(data, configData, configGlobal):  #{{{1
 			if not os.path.exists(dir):
 				syslog.syslog(('ERROR: Could not create directory after '
 						'10 seconds: "%s"') % dir)
+				return(( 'defer', 'Service unavailable, error creating data '
+						'directory.  See /var/log/maillog for more information.' ))
 
 		#  create file
 		open(path, 'w').close()
