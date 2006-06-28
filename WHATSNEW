@@ -1,3 +1,7 @@
+================================
+Version 1.20 -- Tue Jun 27, 2006
+
+Fixing tumgreyspf-stat.
 Try making greylisting data directory several times if we get OSError.
       This helps work around a race condition.  Reported by Mike Meyer.
 
