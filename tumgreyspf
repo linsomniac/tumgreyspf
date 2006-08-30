@@ -7,7 +7,7 @@
 #  All Rights Reserved
 #  <jafo@tummy.com>
 
-S_rcsid = '$Id: tumgreyspf,v 1.16 2006-08-30 00:02:05 jafo Exp $'
+S_rcsid = '$Id: tumgreyspf,v 1.17 2006-08-30 00:07:19 jafo Exp $'
 
 
 import syslog, os, sys, string, re, time, popen2, urllib, stat, errno
@@ -276,7 +276,7 @@ while 1:
 			sys.stdout.write('action=defer_if_permit %s\n\n' % checkerReason)
 
 		elif checkerValue == 'reject':
-			sys.stdout.write('action=reject %s\n\n' % checkerReason)
+			sys.stdout.write('action=550 %s\n\n' % checkerReason)
 
 		else:
 			sys.stdout.write('action=dunno\n\n')

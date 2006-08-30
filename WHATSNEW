@@ -1,3 +1,8 @@
+================================
+Version 1.21 -- Tue Aug 29, 2006
+
+In the case of an SPF reject, return 550 instead of REJECT, in compliance
+      with the RFCs.  Found and patch provided by Scott Kitterman.
 Fixed a thinko and changed link to SPF site, patch by Scott Kitterman.
 Changing the documentation, removing "advanced" settings, based on
       questions by yann shukor.
