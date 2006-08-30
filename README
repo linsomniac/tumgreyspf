@@ -1,5 +1,5 @@
 tumgreyspf README
-$Id: README,v 1.10 2005-10-01 08:14:48 jafo Exp $
+$Id: README,v 1.11 2006-08-30 00:02:05 jafo Exp $
 =================
 
 This is tumgreyspf, an external policy checker for the postfix mail
@@ -348,37 +348,13 @@ INSTALL INSTRUCTIONS
             reject_unauth_destination, \
             check_policy_service unix:private/tumgreyspf
 
-      However, for better spam protection you may wish to use (at the risk
-      of rejecting some e-mail you might otherwise want):
-
-         smtpd_sender_restrictions = \
-            reject_unknown_sender_domain, \
-            reject_non_fqdn_sender, \
-            reject_unauth_destination, \
-            check_policy_service unix:private/tumgreyspf
-
-         smtpd_recipient_restrictions = \
-            permit_mynetworks, \
-            reject_non_fqdn_hostname, \
-            reject_invalid_hostname, \
-            reject_unauth_destination, \
-            check_policy_service unix:private/tumgreyspf
-
-         smtpd_helo_restrictions =
-            permit_mynetworks, \
-            check_helo_access hash:/etc/postfix/access-helo, \
-            reject_non_fqdn_hostname
-
-      Please see the Postfix documentation (Google.com knows where it is)
-      for more information on the implications of the above.
+      Please consult the postfix documentation for more information on
+      these and other settings you may wish to have in the
+      "smtpd_recipient_restrictions" configuration.
 
       You will also need to have a line in the main.cf which reads:
 
          tumgreyspf_time_limit = 3600
-
-      Please consult the postfix documentation for more information on
-      these and other settings you may wish to have in the
-      "smtpd_recipient_restrictions" configuration.
 
    SPF INSTALLATION
 

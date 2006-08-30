@@ -7,10 +7,10 @@
 #  All Rights Reserved
 #  <jafo@tummy.com>
 
-S_rcsid = '$Id: tumgreyspf,v 1.15 2006-06-27 00:24:24 jafo Exp $'
+S_rcsid = '$Id: tumgreyspf,v 1.16 2006-08-30 00:02:05 jafo Exp $'
 
 
-import syslog, os, sys, string, re, time, popen2, urllib, stat
+import syslog, os, sys, string, re, time, popen2, urllib, stat, errno
 sys.path.append('/usr/local/lib/tumgreyspf')
 import tumgreyspfsupp
 
@@ -120,8 +120,9 @@ def greylistcheck(data, configData, configGlobal):  #{{{1
 				try:
 					os.makedirs(dir)
 					break
-				except OSError:
-					time.sleep(1)
+				except OSError, msg:
+					if msg.errno != errno.EEXIST: raise
+
 
 			#  still didn't succeed
 			if not os.path.exists(dir):

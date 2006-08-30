@@ -1,3 +1,8 @@
+Fixed a thinko and changed link to SPF site, patch by Scott Kitterman.
+Changing the documentation, removing "advanced" settings, based on
+      questions by yann shukor.
+Made the OSError exception trap more picky.  Patch by Mike Meyer.
+
 ================================
 Version 1.20 -- Tue Jun 27, 2006
 
