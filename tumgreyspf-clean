@@ -54,11 +54,15 @@ def visit(config, dirname, fileList):
 				data, config.copy())
 		expireTime = time.time() - (configData['GREYLISTEXPIREDAYS'] * 86400)
 
-		#  check
+		#  check for expiration
 		statData = os.stat(path)
 		mtime = statData[8]
 		ctime = statData[9]
-		if ctime < expireTime:
+		expiredAuth = ctime < mtime and (time.time() - mtime) > (12 * 3600)
+		expiredAfterAuth = ctime < expireTime
+
+		#  check for expiration
+		if expiredAuth or expiredAfterAuth:
 			os.remove(path)
 			didUnlink = 1
 

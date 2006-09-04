@@ -1,4 +1,10 @@
 ================================
+Version 1.22 -- Tue Sep 04, 2006
+
+tumgreyspf-clean will now expire initial entries after 12 hours if they
+      haven't connected again.  Patch by Jeff from Rockville.
+
+================================
 Version 1.21 -- Tue Aug 29, 2006
 
 In the case of an SPF reject, return 550 instead of REJECT, in compliance
