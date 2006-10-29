@@ -1,5 +1,5 @@
 tumgreyspf README
-$Id: README,v 1.11 2006-08-30 00:02:05 jafo Exp $
+$Id: README,v 1.12 2006-10-29 17:00:09 jafo Exp $
 =================
 
 This is tumgreyspf, an external policy checker for the postfix mail
@@ -273,7 +273,8 @@ INSTALL INSTRUCTIONS
 
          #  set up directories
          mkdir -p "$TGSPROG" "$TGSDATA"/config
-         mkdir ""$TGSDATA"/data
+         mkdir "$TGSDATA"/data
+         chown -R nobody "$TGSDATA"/data
          cp __default__.dist "$TGSDATA"/config/__default__
 
          #  install programs
@@ -329,7 +330,6 @@ INSTALL INSTRUCTIONS
 
          tumgreyspf  unix  -       n       n       -       -       spawn
             user=nobody argv=$TGSPROG/tumgreyspf
-
 
       Next, main.cf must be configured so that "smtpd_sender_restrictions"
       includes a call to the tumgreyspf policy filter.  If you already have
