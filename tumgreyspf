@@ -7,7 +7,7 @@
 #  All Rights Reserved
 #  <jafo@tummy.com>
 
-S_rcsid = '$Id: tumgreyspf,v 1.18 2006-11-29 03:44:21 jafo Exp $'
+S_rcsid = '$Id: tumgreyspf,v 1.19 2006-11-29 04:20:36 jafo Exp $'
 
 
 import syslog, os, sys, string, re, time, popen2, urllib, stat, errno
@@ -87,7 +87,7 @@ def spfcheck(data, configData, configGlobal):  #{{{1
 					data.get('recipient', '<UNKNOWN>'),
 					data.get('queue_id', '<UNKNOWN>'), spfReason ) )
 
-		return(( 'reject', spfReason ))
+		return(( 'reject', 'SPF Reports: %s' % str(spfReason) ))
 
 	return(( None, None ))
 

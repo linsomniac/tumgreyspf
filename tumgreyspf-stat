@@ -33,8 +33,8 @@ def visit(config, dirname, fileList):
 		if not m:
 			print 'Unknown path "%s" found in greylist directory.' % relative
 			continue
-		ip = string.join(m.groups()[:4], '.')
-		sender = m.groups()[4]
+		ip = string.join(m.groups()[:-1], '.')
+		sender = m.groups()[-1]
 
 		#  look up expration day
 		data = {
