@@ -7,7 +7,7 @@
 #  All Rights Reserved
 #  <jafo@tummy.com>
 
-S_rcsid = '$Id: tumgreyspf,v 1.17 2006-08-30 00:07:19 jafo Exp $'
+S_rcsid = '$Id: tumgreyspf,v 1.18 2006-11-29 03:44:21 jafo Exp $'
 
 
 import syslog, os, sys, string, re, time, popen2, urllib, stat, errno
@@ -26,6 +26,8 @@ def spfcheck(data, configData, configGlobal):  #{{{1
 	if ip == None:
 		if debugLevel: syslog.syslog('spfcheck: No client address, exiting')
 		return(( None, None ))
+	if ip[:4] == '127.':
+		return (( None, 'SPF check N/A for local connections' ))
 	
 	sender = data.get('sender')
 	if not sender:
