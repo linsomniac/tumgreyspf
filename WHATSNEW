@@ -1,4 +1,9 @@
 ================================
+Version 1.24 -- Wed Nov 29, 2006
+
+Patch from Scott Scriven to fix the tumgreyspf-stat+ignoreLastByte issues.
+
+================================
 Version 1.23 -- Tue Nov 28, 2006
 
 README changes sent in by Leni Mayo and Radoslaw Stachowiak.
