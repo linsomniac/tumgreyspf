@@ -7,7 +7,7 @@
 #  All Rights Reserved
 #  <jafo@tummy.com>
 
-S_rcsid = '$Id: tumgreyspf,v 1.19 2006-11-29 04:20:36 jafo Exp $'
+S_rcsid = '$Id: tumgreyspf,v 1.20 2007-06-09 00:18:25 jafo Exp $'
 
 
 import syslog, os, sys, string, re, time, popen2, urllib, stat, errno
@@ -48,9 +48,17 @@ def spfcheck(data, configData, configGlobal):  #{{{1
 	#  try to use pyspf
 	try:
 		import spf
-		ret = spf.check(i = ip, s = sender, h = helo)
-		spfResult = string.strip(ret[0])
-		spfReason = string.strip(ret[2])
+		if hasattr(spf, 'check2'):
+			#  use the pySPF 2.0/RFC 4408 interface
+			ret = spf.check2(i = ip, s = sender, h = helo)
+			spfResult = string.strip(ret[0])
+			spfReason = string.strip(ret[1])
+		else:
+			#  fall back to older pre-RFC interface
+			ret = spf.check(i = ip, s = sender, h = helo)
+			spfResult = string.strip(ret[0])
+			spfReason = string.strip(ret[2])
+
 		if debugLevel:
 			syslog.syslog('spfcheck: pyspf result: "%s"' % str(ret))
 	except ImportError:
