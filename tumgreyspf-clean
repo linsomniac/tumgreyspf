@@ -3,7 +3,7 @@
 #  Walk through the greylist directory and clean out old entries, based on
 #  the values in the config file.
 #
-#  Copyright (c) 2004-2005, Sean Reifschneider, tummy.com, ltd.
+#  Copyright (c) 2004-2007, Sean Reifschneider, tummy.com, ltd.
 #  All Rights Reserved
 #  <jafo@tummy.com>
 

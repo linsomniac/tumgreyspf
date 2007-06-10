@@ -53,9 +53,10 @@ done
 cp tumgreyspf.conf "$RPM_BUILD_ROOT"/var/lib/tumgreyspf/config/
 cp __default__.dist "$RPM_BUILD_ROOT"/var/lib/tumgreyspf/config/__default__
 
-#  link external programs to /usr/sbin
-ln -s /usr/lib/tumgreyspf/tumgreyspf-configtest "$RPM_BUILD_ROOT"/usr/sbin
-ln -s /usr/lib/tumgreyspf/tumgreyspf-stat "$RPM_BUILD_ROOT"/usr/sbin
+#  move external programs to /usr/sbin
+mv /usr/lib/tumgreyspf/tumgreyspf-configtest "$RPM_BUILD_ROOT"/usr/sbin
+mv /usr/lib/tumgreyspf/tumgreyspf-stat "$RPM_BUILD_ROOT"/usr/sbin
+mv /usr/lib/tumgreyspf/tumgreyspf-addip "$RPM_BUILD_ROOT"/usr/sbin
 
 #  set up crontab
 echo '0 0 * * * nobody /usr/lib/tumgreyspf/tumgreyspf-clean' \
@@ -68,6 +69,12 @@ echo '0 0 * * * nobody /usr/lib/tumgreyspf/tumgreyspf-clean' \
       tumgreyspf >tumgreyspf.new && \
       cat tumgreyspf.new >tumgreyspf && \
       rm -f tumgreyspf.new
+   sed 's|^defaultConfigFilename.*|defaultConfigFilename = "/var/lib/tumgreyspf/config/tumgreyspf.conf"|' \
+      tumgreyspfsupp.py >tumgreyspfsupp.py.new && \
+      cat tumgreyspfsupp.py.new >tumgreyspfsupp.py && \
+      rm -f tumgreyspfsupp.py.new
+
+   cd "$RPM_BUILD_ROOT"/usr/sbin/
    sed 's|^sys.path.append.*|sys.path.append("/usr/lib/tumgreyspf")|' \
       tumgreyspf-clean >tumgreyspf-clean.new && \
       cat tumgreyspf-clean.new >tumgreyspf-clean && \
@@ -76,10 +83,10 @@ echo '0 0 * * * nobody /usr/lib/tumgreyspf/tumgreyspf-clean' \
       tumgreyspf-stat >tumgreyspf-stat.new && \
       cat tumgreyspf-stat.new >tumgreyspf-stat && \
       rm -f tumgreyspf-stat.new
-   sed 's|^defaultConfigFilename.*|defaultConfigFilename = "/var/lib/tumgreyspf/config/tumgreyspf.conf"|' \
-      tumgreyspfsupp.py >tumgreyspfsupp.py.new && \
-      cat tumgreyspfsupp.py.new >tumgreyspfsupp.py && \
-      rm -f tumgreyspfsupp.py.new
+   sed 's|^my .base_dir*|my $base_dir = q(/var/lib/tumgreyspf/config/client_address);|' \
+      tumgreyspf-addip >tumgreyspf-addip.new && \
+      cat tumgreyspf-addip.new >tumgreyspf-addip && \
+      rm -f tumgreyspf-addip.new
 
    cd "$RPM_BUILD_ROOT"/var/lib/tumgreyspf/config/
    sed 's|^spfqueryPath.*|spfqueryPath = "/usr/bin/spfquery"|' \

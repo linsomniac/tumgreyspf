@@ -1,0 +1,58 @@
+#!/usr/bin/perl
+#
+#  Whitelist an IP address for tumgreyspf.
+
+use strict;
+
+my $live = 1;
+my $base_dir		= q(/var/local/lib/tumgreyspf/config/client_address/);
+
+my $conf_contents	= q(SPFSEEDONLY=0
+GREYLISTTIME=300
+CHECKERS=
+OTHERCONFIGS=);
+
+my $conf_name		= q(__default__);
+
+my $mkdir		= q(/bin/mkdir);
+
+#print $conf_name."\n";
+#print $conf_contents."\n";
+
+while (<>) {
+    chomp;
+    my $dirtree = "";
+    if ($_ =~ /^(\d+)\.(\d+)\.(\d+).(\d+)/) {
+	$dirtree = $base_dir.$1."/".$2."/".$3."/".$4."/";
+    } elsif ($_ =~ /^(\d+)\.(\d+)\.(\d+)/) {
+	$dirtree = $base_dir.$1."/".$2."/".$3."/";
+    } elsif ($_ =~ /^(\d+)\.(\d+)/) {
+	$dirtree = $base_dir.$1."/".$2."/";
+    } elsif ($_ =~ /^(\d+)/) {
+	$dirtree = $base_dir.$1."/";
+    }
+    if (($dirtree =~ /^$base_dir/) and ($live)) {
+	run_it($mkdir." -p ".$dirtree."\n");
+	print "writing ".$dirtree.$conf_name."\n";
+	open (OUTFILE, ">".$dirtree.$conf_name) or die "Can't write ".$dirtree.$conf_name." : $!\n";
+	print OUTFILE $conf_contents;
+	close (OUTFILE);
+    } else {
+	print "not running : ".$mkdir." -p ".$dirtree."\n";
+	print "not writing : ".$dirtree.$conf_name."\n";
+    }
+}
+
+##########################################################################
+sub run_it {
+    my ($command) = @_;
+    print $command."\n";
+    if ($live) {
+	open (COMMAND, "$command 2>&1 |") or die "Can't run $command : $!\n";
+ 	while (<COMMAND>) {
+            print;
+	}
+	close (COMMAND);
+    }
+}
+
