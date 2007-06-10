@@ -7,10 +7,11 @@
 #  All Rights Reserved
 #  <jafo@tummy.com>
 
-S_rcsid = '$Id: tumgreyspf,v 1.23 2007-06-10 01:11:11 jafo Exp $'
+S_rcsid = '$Id: tumgreyspf,v 1.24 2007-06-10 06:27:28 jafo Exp $'
 
 
 import syslog, os, sys, string, re, time, popen2, urllib, stat, errno, socket
+import spf
 sys.path.append('/usr/local/lib/tumgreyspf')
 import tumgreyspfsupp
 
@@ -90,12 +91,6 @@ def spfcheck(data, configData, configGlobal):  #{{{1
 	spfResult = None
 	spfReason = None
 
-	#  try to use pyspf
-	try:
-		import spf
-	except ImportError:
-		return(( None, None ))
-
 	if hasattr(spf, 'check2'):
 		#  use the pySPF 2.0/RFC 4408 interface
 		ret = spf.check2(i = ip, s = sender, h = helo)
@@ -114,7 +109,7 @@ def spfcheck(data, configData, configGlobal):  #{{{1
 					data.get('recipient', '<UNKNOWN>'),
 					))
 		queue_id = ('QUEUE_ID="%s"' % ( data.get('queue_id', '<UNKNOWN>')))
-		syslog.syslog('%s: %s; %s' ( str(spfReason), queue_id, spfDetail ))
+		syslog.syslog('%s: %s; %s' % ( str(spfReason), queue_id, spfDetail ))
 		
 		if spfResult == 'fail':
 			return(( 'reject', '%s SPF Reports: %s' 
