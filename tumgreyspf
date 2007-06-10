@@ -7,35 +7,80 @@
 #  All Rights Reserved
 #  <jafo@tummy.com>
 
-S_rcsid = '$Id: tumgreyspf,v 1.20 2007-06-09 00:18:25 jafo Exp $'
+S_rcsid = '$Id: tumgreyspf,v 1.21 2007-06-10 00:21:19 jafo Exp $'
 
 
-import syslog, os, sys, string, re, time, popen2, urllib, stat, errno
+import syslog, os, sys, string, re, time, popen2, urllib, stat, errno, socket, spf
 sys.path.append('/usr/local/lib/tumgreyspf')
 import tumgreyspfsupp
 
 syslog.openlog(os.path.basename(sys.argv[0]), syslog.LOG_PID, syslog.LOG_MAIL)
 tumgreyspfsupp.setExceptHook()
 
+#############################################
+def cidrmatch(connectip, ipaddrs, n):
+    """Match connect IP against a list of other IP addresses. From pyspf."""
+
+    try:
+        if connectip.count(':'):
+            MASK = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFL
+            connectip = spf.inet_pton(connectip)
+            for arg in ipaddrs:
+                ipaddrs[ipaddrs.index(arg)] = spf.inet_pton(arg)
+            bin = spf.bin2long6
+        else:
+            MASK = 0xFFFFFFFFL
+            bin = spf.addr2bin
+        c = ~(MASK >> n) & MASK & bin(connectip)
+        for ip in [bin(ip) for ip in ipaddrs]:
+            if c == ~(MASK >> n) & MASK & ip: return True
+    except socket.error: pass
+    return False
+
+def parse_cidr(cidr_ip):
+    """Breaks CIDR notation into a (address,cidr,cidr6) tuple.  The cidr 
+       defaults to 32 if not present. Derived from pyspf"""
+    import re
+    RE_DUAL_CIDR = re.compile(r'//(0|[1-9]\d*)$')
+    RE_CIDR = re.compile(r'/(0|[1-9]\d*)$')
+    a = RE_DUAL_CIDR.split(cidr_ip)
+    if len(a) == 3:
+        cidr_ip, cidr6 = a[0], int(a[1])
+    else:
+        cidr6 = None
+    a = RE_CIDR.split(cidr_ip)
+    if len(a) == 3:
+        cidr_ip, cidr = a[0], int(a[1])
+    else:
+        cidr = None
+    b = cidr_ip.split(':', 1)
+    if len(b) < 2:
+        return cidr_ip, cidr
+    return a[0], cidr6
 
 #############################################
 def spfcheck(data, configData, configGlobal):  #{{{1
 	debugLevel = configGlobal.get('debugLevel', 0)
-
 	ip = data.get('client_address')
 	if ip == None:
 		if debugLevel: syslog.syslog('spfcheck: No client address, exiting')
 		return(( None, None ))
-	if ip[:4] == '127.':
-		return (( None, 'SPF check N/A for local connections' ))
-	
+	# Do not check SPF for localhost addresses - add to skip addresses to 
+	# skip SPF for internal networks if desired.
+	skip_addresses = ['127.0.0.0/8', '::ffff:127.0.0.0//104', '::1//128',]
+	for cidr in skip_addresses:
+		parsed_address = parse_cidr(cidr)
+		good_ip = [parsed_address[0],]
+		if cidrmatch(ip, good_ip, int(parsed_address[1])):
+			return (( None, 'SPF check N/A for local connections' ))
+
 	sender = data.get('sender')
-	if not sender:
-		if debugLevel: syslog.syslog('spfcheck: No sender, exiting')
+	helo = data.get('helo_name')
+	if not sender and not helo:
+		if debugLevel: syslog.syslog('spfcheck: No sender or helo, exiting')
 		return(( None, None ))
 
 	#  if no helo name sent, use domain from sender
-	helo = data.get('helo_name')
 	if not helo:
 		foo = string.split(sender, '@', 1)
 		if len(foo) <  2: helo = 'unknown'
@@ -48,54 +93,84 @@ def spfcheck(data, configData, configGlobal):  #{{{1
 	#  try to use pyspf
 	try:
 		import spf
-		if hasattr(spf, 'check2'):
-			#  use the pySPF 2.0/RFC 4408 interface
-			ret = spf.check2(i = ip, s = sender, h = helo)
-			spfResult = string.strip(ret[0])
-			spfReason = string.strip(ret[1])
-		else:
-			#  fall back to older pre-RFC interface
-			ret = spf.check(i = ip, s = sender, h = helo)
-			spfResult = string.strip(ret[0])
-			spfReason = string.strip(ret[2])
-
-		if debugLevel:
-			syslog.syslog('spfcheck: pyspf result: "%s"' % str(ret))
 	except ImportError:
-		pass
+		return(( None, None ))
 
-	#  try spfquery
-	if not spfResult:
-		#  check for spfquery
-		spfqueryPath = configGlobal['spfqueryPath']
-		if not os.path.exists(spfqueryPath):
-			if debugLevel:
-				syslog.syslog('spfcheck: No spfquery at "%s", exiting'
-						% spfqueryPath)
-			return(( None, None ))
+	if hasattr(spf, 'check2'):
+		#  use the pySPF 2.0/RFC 4408 interface
+		ret = spf.check2(i = ip, s = sender, h = helo)
+		spfResult = string.strip(ret[0])
+		spfReason = string.strip(ret[1])
 
-		#  open connection to spfquery
-		fpIn, fpOut = popen2.popen2('%s -file -' % spfqueryPath)
-		fpOut.write('%s %s %s\n' % ( ip, sender, helo ))
-		fpOut.close()
-		spfData = fpIn.readlines()
-		fpIn.close()
-		if debugLevel:
-			syslog.syslog('spfcheck: spfquery result: "%s"' % str(spfData))
-		spfResult = string.strip(spfData[0])
-		spfReason = string.strip(spfData[1])
-
-	#  read result
-	if spfResult == 'fail' or spfResult == 'deny':
-		syslog.syslog('SPF fail: REMOTEIP="%s" HELO="%s" SENDER="%s" '
-				'RECIPIENT="%s" QUEUEID="%s" REASON="%s"'
+		if sender:
+			identity = 'identity=mailfrom; '
+		else:
+			identity = 'identity=helo; '
+		spfDetail = (identity + 'client-ip=%s; helo=%s; envelope-from=%s; '
+				'receiver=%s; '
 				% ( data.get('client_address', '<UNKNOWN>'),
 					data.get('helo_name', '<UNKNOWN>'),
 					data.get('sender', '<UNKNOWN>'),
 					data.get('recipient', '<UNKNOWN>'),
-					data.get('queue_id', '<UNKNOWN>'), spfReason ) )
+					))
+		queue_id = ('QUEUE_ID="%s"' % ( data.get('queue_id', '<UNKNOWN>')))
+		syslog.syslog('%s: %s; %s' ( str(spfReason), queue_id, spfDetail ))
+		
+		if spfResult == 'fail':
+			return(( 'reject', '%s SPF Reports: %s' 
+				% ( queue_id, str(spfReason) )))
 
-		return(( 'reject', 'SPF Reports: %s' % str(spfReason) ))
+		if spfResult == 'permerror':
+			return(( 'reject', '%s SPF Reports: %s' 
+				% ( queue_id, str(spfReason) )))
+		
+		if spfResult == 'temperror':
+			return(( 'defer', '%s SPF Reports: %s' % ( queue_id, str(spfReason) )))
+		header = 'Received-SPF: '+ spfResult + ' (' + spfReason +') ' + spfDetail
+		
+		return(( 'prepend', header ))
+	else:
+		#  fall back to older pre-RFC interface
+		ret = spf.check(i = ip, s = sender, h = helo)
+		spfResult = string.strip(ret[0])
+		spfReason = string.strip(ret[2])
+
+		#  try spfquery
+		if not spfResult:
+			#  check for spfquery
+			spfqueryPath = configGlobal['spfqueryPath']
+			if not os.path.exists(spfqueryPath):
+				if debugLevel:
+					syslog.syslog('spfcheck: No spfquery at "%s", exiting'
+							% spfqueryPath)
+				return(( None, None ))
+
+			#  open connection to spfquery
+			fpIn, fpOut = popen2.popen2('%s -file -' % spfqueryPath)
+			fpOut.write('%s %s %s\n' % ( ip, sender, helo ))
+			fpOut.close()
+			spfData = fpIn.readlines()
+			fpIn.close()
+			if debugLevel:
+				syslog.syslog('spfcheck: spfquery result: "%s"' % str(spfData))
+			spfResult = string.strip(spfData[0])
+			spfReason = string.strip(spfData[1])
+
+		#  read result
+		if spfResult == 'fail' or spfResult == 'deny':
+			syslog.syslog('SPF fail: REMOTEIP="%s" HELO="%s" SENDER="%s" '
+					'RECIPIENT="%s" %s REASON="%s"'
+					% ( data.get('client_address', '<UNKNOWN>'),
+						data.get('helo_name', '<UNKNOWN>'),
+						data.get('sender', '<UNKNOWN>'),
+						data.get('recipient', '<UNKNOWN>'),
+						queue_id, spfReason ) )
+
+			return(( 'reject', '%s SPF Reports: %s'
+					% ( queue_id, str(spfReason) ) ))
+
+	if debugLevel:
+		syslog.syslog('spfcheck: pyspf result: "%s"' % str(ret))
 
 	return(( None, None ))
 
@@ -244,6 +319,7 @@ configGlobal = tumgreyspfsupp.processConfigFile(filename = configFile)
 #  loop reading data  {{{1
 debugLevel = configGlobal.get('debugLevel', 0)
 if debugLevel >= 2: syslog.syslog('Starting')
+instance_list = []
 data = {}
 lineRx = re.compile(r'^\s*([^=\s]+)\s*=(.*)$')
 while 1:
@@ -282,12 +358,27 @@ while 1:
 				if checkerValue != None: break
 
 		#  handle results  {{{3
-		if checkerValue == 'defer':
-			sys.stdout.write('action=defer_if_permit %s\n\n' % checkerReason)
 
-		elif checkerValue == 'reject':
+		if checkerValue == 'reject':
 			sys.stdout.write('action=550 %s\n\n' % checkerReason)
-
+			
+		elif checkerValue == 'prepend':
+			instance = data.get('instance')
+			# The following if is only needed for testing.  Postfix 
+			# will always provide instance.
+			if not instance:
+				import random
+				instance = str(int(random.random()*100000))
+			# This is to prevent multiple headers being prepended
+			# for multi-recipient mail.
+			found_instance = instance_list.count(instance)
+			if found_instance == 0:
+				sys.stdout.write('action=prepend %s\n\n' % checkerReason)
+				instance_list.append(instance)
+			else:
+				sys.stdout.write('action=dunno\n\n')
+		elif checkerValue == 'defer':
+			sys.stdout.write('action=defer_if_permit %s\n\n' % checkerReason)	
 		else:
 			sys.stdout.write('action=dunno\n\n')
 
