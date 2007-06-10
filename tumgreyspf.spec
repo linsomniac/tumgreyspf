@@ -46,7 +46,7 @@ mkdir -p "$RPM_BUILD_ROOT"/etc/cron.d
 
 #  copy over files
 for file in tumgreyspf tumgreyspf-clean tumgreyspf-configtest \
-      tumgreyspf-install tumgreyspf-stat tumgreyspfsupp.py
+      tumgreyspf-install tumgreyspf-stat tumgreyspf-addip tumgreyspfsupp.py
 do
    cp "$file" "$RPM_BUILD_ROOT"/usr/lib/tumgreyspf/
 done
@@ -54,9 +54,9 @@ cp tumgreyspf.conf "$RPM_BUILD_ROOT"/var/lib/tumgreyspf/config/
 cp __default__.dist "$RPM_BUILD_ROOT"/var/lib/tumgreyspf/config/__default__
 
 #  move external programs to /usr/sbin
-mv /usr/lib/tumgreyspf/tumgreyspf-configtest "$RPM_BUILD_ROOT"/usr/sbin
-mv /usr/lib/tumgreyspf/tumgreyspf-stat "$RPM_BUILD_ROOT"/usr/sbin
-mv /usr/lib/tumgreyspf/tumgreyspf-addip "$RPM_BUILD_ROOT"/usr/sbin
+mv "$RPM_BUILD_ROOT"/usr/lib/tumgreyspf/tumgreyspf-configtest "$RPM_BUILD_ROOT"/usr/sbin
+mv "$RPM_BUILD_ROOT"/usr/lib/tumgreyspf/tumgreyspf-stat "$RPM_BUILD_ROOT"/usr/sbin
+mv "$RPM_BUILD_ROOT"/usr/lib/tumgreyspf/tumgreyspf-addip "$RPM_BUILD_ROOT"/usr/sbin
 
 #  set up crontab
 echo '0 0 * * * nobody /usr/lib/tumgreyspf/tumgreyspf-clean' \
