@@ -7,10 +7,10 @@
 #  All Rights Reserved
 #  <jafo@tummy.com>
 
-S_rcsid = '$Id: tumgreyspf,v 1.21 2007-06-10 00:21:19 jafo Exp $'
+S_rcsid = '$Id: tumgreyspf,v 1.22 2007-06-10 00:32:08 jafo Exp $'
 
 
-import syslog, os, sys, string, re, time, popen2, urllib, stat, errno, socket, spf
+import syslog, os, sys, string, re, time, popen2, urllib, stat, errno, socket
 sys.path.append('/usr/local/lib/tumgreyspf')
 import tumgreyspfsupp
 
@@ -186,17 +186,22 @@ def greylistcheck(data, configData, configGlobal):  #{{{1
 	if configGlobal['ignoreLastByte'] > 0: ipBytes = ipBytes[:-1]
 	ipPath = string.join(ipBytes, '/')
 	
-	sender = data.get('sender')
-	recipient = data.get('recipient')
-	if not sender or not recipient:
-		return(( None, None ))
-	sender = tumgreyspfsupp.quoteAddress(sender)
-	recipient = tumgreyspfsupp.quoteAddress(recipient)
+	if configGlobal['greylistByIPOnly'] > 0:
+		dir = os.path.join(greylistDir, ipPath)
+		path = os.path.join(dir, 'check_file')
+	else:
+		sender = data.get('sender')
+		recipient = data.get('recipient')
+		if not sender or not recipient:
+			return(( None, None ))
+		sender = tumgreyspfsupp.quoteAddress(sender)
+		recipient = tumgreyspfsupp.quoteAddress(recipient)
+		dir = os.path.join(greylistDir, 'client_address', ipPath, 'greylist',
+				sender)
+		path = os.path.join(dir, recipient)
 
 	allowTime = configData.get('GREYLISTTIME', 600)
 
-	dir = os.path.join(greylistDir, 'client_address', ipPath, 'greylist', sender)
-	path = os.path.join(dir, recipient)
 	if not os.path.exists(path):
 		if not os.path.exists(dir):
 			#  if multiple messages come in at once
@@ -207,6 +212,7 @@ def greylistcheck(data, configData, configGlobal):  #{{{1
 					break
 				except OSError, msg:
 					if msg.errno != errno.EEXIST: raise
+					time.sleep(1)
 
 
 			#  still didn't succeed

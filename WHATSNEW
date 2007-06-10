@@ -9,6 +9,8 @@ More patches from Scott Kitterman:
    Defer on temperror
    Reject on permerror
    Check HELO for null Sender (Mail From)
+Patch from Joshua J. Kugler to greylist only by IP address (not by
+   IP+sender+recipient).
 
 ================================
 Version 1.24 -- Wed Nov 29, 2006
