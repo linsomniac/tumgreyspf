@@ -1,4 +1,10 @@
 ================================
+Version 1.27 -- Thu Jun 14, 2007
+
+Patch from Scott Kitterman which changes the capitilization to hopefully
+      prevent problems with future versions of SPF.
+
+================================
 Version 1.26 -- Sun Jun 10, 2007
 
 Paul Tiemann reported problems with the location of SPF import and syslog
