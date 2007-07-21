@@ -7,7 +7,7 @@
 #  All Rights Reserved
 #  <jafo@tummy.com>
 
-S_rcsid = '$Id: tumgreyspf,v 1.25 2007-06-14 22:00:04 jafo Exp $'
+S_rcsid = '$Id: tumgreyspf,v 1.26 2007-07-21 07:46:45 jafo Exp $'
 
 
 import syslog, os, sys, string, re, time, popen2, urllib, stat, errno, socket
@@ -112,14 +112,10 @@ def spfcheck(data, configData, configGlobal):  #{{{1
 		queue_id = ('QUEUE_ID="%s"' % ( data.get('queue_id', '<UNKNOWN>')))
 		syslog.syslog('%s: %s; %s' % ( str(spfReason), queue_id, spfDetail ))
 		
-		if spfResult == 'Fail':
+		if spfResult == 'Fail' or spfResult == 'Permerror':
 			return(( 'reject', '%s SPF Reports: %s' 
 				% ( queue_id, str(spfReason) )))
 
-		if spfResult == 'Permerror':
-			return(( 'reject', '%s SPF Reports: %s' 
-				% ( queue_id, str(spfReason) )))
-		
 		if spfResult == 'Temperror':
 			return(( 'defer', '%s SPF Reports: %s' % ( queue_id, str(spfReason) )))
 		header = 'Received-SPF: '+ spfResult + ' (' + spfReason +') ' + spfDetail
