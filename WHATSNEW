@@ -1,3 +1,6 @@
+Queue-id was not getting set for some paths through the code.  Reported by
+      George Sexton.
+
 ================================
 Version 1.27 -- Thu Jun 14, 2007
 

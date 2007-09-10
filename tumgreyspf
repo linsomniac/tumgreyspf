@@ -7,7 +7,7 @@
 #  All Rights Reserved
 #  <jafo@tummy.com>
 
-S_rcsid = '$Id: tumgreyspf,v 1.26 2007-07-21 07:46:45 jafo Exp $'
+S_rcsid = '$Id: tumgreyspf,v 1.27 2007-09-10 23:41:08 jafo Exp $'
 
 
 import syslog, os, sys, string, re, time, popen2, urllib, stat, errno, socket
@@ -62,6 +62,7 @@ def parse_cidr(cidr_ip):
 #############################################
 def spfcheck(data, configData, configGlobal):  #{{{1
 	debugLevel = configGlobal.get('debugLevel', 0)
+	queue_id = ('QUEUE_ID="%s"' % ( data.get('queue_id', '<UNKNOWN>')))
 	ip = data.get('client_address')
 	if ip == None:
 		if debugLevel: syslog.syslog('spfcheck: No client address, exiting')
@@ -109,7 +110,6 @@ def spfcheck(data, configData, configGlobal):  #{{{1
 					data.get('sender', '<UNKNOWN>'),
 					data.get('recipient', '<UNKNOWN>'),
 					))
-		queue_id = ('QUEUE_ID="%s"' % ( data.get('queue_id', '<UNKNOWN>')))
 		syslog.syslog('%s: %s; %s' % ( str(spfReason), queue_id, spfDetail ))
 		
 		if spfResult == 'Fail' or spfResult == 'Permerror':
