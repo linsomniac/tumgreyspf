@@ -2,7 +2,7 @@
 Version 1.28 -- Wed Sep 12, 2007
 
 Queue-id was not getting set for some paths through the code.  Caused
-   tracebacks in the mail log file.  Reported by George Sexton.
+   tracebacks in the mail log file.  Reported by RStachowiak and George Sexton
 
 ================================
 Version 1.27 -- Thu Jun 14, 2007
