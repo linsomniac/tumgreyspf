@@ -1,3 +1,5 @@
+Add a header if the SPF check throws an exception for any reason.
+   Suggested by Radoslaw Stachowiak
 If SPF returns "none" indicating no SPF record, allow checking to continue
    on to other checkers.  For example, if you have it set to use "spf,
    greylist".  Patch submitted by Paul Tiemann.
