@@ -1,0 +1,31 @@
+.TH tumgreyspf 8
+
+.SH NAME
+tumgreyspf \- an external policy checker for the postfix mail server
+
+.SH SYNOPSIS
+.B tumgreyspf
+[
+.I configfilename
+]
+
+.SH DESCRIPTION
+
+Tumgreyspf can optionally greylist and/or use spfquery to check SPF records
+to determine if email should be accepted by your server.
+
+Because of it's design, legitimate e-mail is never trapped or rejected.
+Only spam and viruses are caught. If you add tumgreyspf to your mail server
+(also compatible when using Spam Assassin, ClamAV, and an outsourced
+anti-spam system), your spam level will be dropped by an order of magnitude.
+
+Tumgreyspf uses the file-system as it's database, no additional database is
+required to use it.
+
+This man page is a place holder for whoever wants to write a doc to this. Feel
+free to send it to the upstream Sean Reifschneider <jafo@tummy.com> or to me,
+the Debian maintainer, Thomas Goirand <thomas@goirand.fr>.
+
+.SH "SEE ALSO"
+
+Homepage: <http://www.tummy.com/Community/software/tumgreyspf/>

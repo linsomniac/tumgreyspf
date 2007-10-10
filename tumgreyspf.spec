@@ -43,6 +43,7 @@ mkdir -p "$RPM_BUILD_ROOT"/var/lib/tumgreyspf/config
 mkdir -p "$RPM_BUILD_ROOT"/var/lib/tumgreyspf/data
 mkdir -p "$RPM_BUILD_ROOT"/usr/sbin
 mkdir -p "$RPM_BUILD_ROOT"/etc/cron.d
+mkdir -p $RPM_BUILD_ROOT/%{_mandir}/man8
 
 #  copy over files
 for file in tumgreyspf tumgreyspf-clean tumgreyspf-configtest \
@@ -52,6 +53,7 @@ do
 done
 cp tumgreyspf.conf "$RPM_BUILD_ROOT"/var/lib/tumgreyspf/config/
 cp __default__.dist "$RPM_BUILD_ROOT"/var/lib/tumgreyspf/config/__default__
+cp tumgreyspf.8 $RPM_BUILD_ROOT/%{_mandir}/man8
 
 #  move external programs to /usr/sbin
 mv "$RPM_BUILD_ROOT"/usr/lib/tumgreyspf/tumgreyspf-configtest "$RPM_BUILD_ROOT"/usr/sbin
@@ -112,3 +114,4 @@ echo '0 0 * * * nobody /usr/lib/tumgreyspf/tumgreyspf-clean' \
 %attr(700,nobody,root) /var/lib/tumgreyspf/data
 %attr(644,root,root) /etc/cron.d/tumgreyspf
 %doc README README.QuickStart README.performance WHATSNEW TODO README-RPM
+%{_mandir}/man8/tumgreyspf*

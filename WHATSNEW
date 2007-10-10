@@ -1,3 +1,7 @@
+================================
+Version 1.29 -- Wed Oct 10, 2007
+
+Minimal man page contributed by Thomas Goirand.
 Add a header if the SPF check throws an exception for any reason.
    Suggested by Radoslaw Stachowiak
 If SPF returns "none" indicating no SPF record, allow checking to continue
