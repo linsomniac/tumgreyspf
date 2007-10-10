@@ -11,3 +11,9 @@ do
 	sed 's/^%define version.*/%define version '"$rev"'/' "${spec}.old" >"${spec}"
 	rm -f "${spec}.old"
 done
+
+#  send a release notification
+echo 'Sending release notification to:'
+cat release-notify
+date | mutt -s "New version notification: ${dir##*/}" `cat release-notify`
+rm -f release-notify
