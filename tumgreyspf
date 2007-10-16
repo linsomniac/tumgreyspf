@@ -133,7 +133,7 @@ def spfcheck(data, configData, configGlobal):  #{{{1
 		#  fall back to older pre-RFC interface
 		try:
 			ret = spf.check(i = ip, s = sender, h = helo)
-		exception Except, e:
+		except Except, e:
 			header = 'TumGreySPF-Warning: SPF Check failed: %s' % str(e)
 			return(( 'prepend', header ))
 

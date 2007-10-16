@@ -1,4 +1,9 @@
 ================================
+Version 1.30 -- Tue Oct 16, 2007
+
+Fixing thinko in the patch in the last release.  Submitted by Thomas Goirand
+
+================================
 Version 1.29 -- Wed Oct 10, 2007
 
 Minimal man page contributed by Thomas Goirand.
