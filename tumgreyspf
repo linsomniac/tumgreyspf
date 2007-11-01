@@ -102,9 +102,8 @@ def spfcheck(data, configData, configGlobal):  #{{{1
 
 		spfReason = string.strip(ret[1])
 		spfResult = string.strip(ret[0])
-		spfResult = spfResult.lower()
-		spfResult = spfResult.capitalize()
-		if spfResult == 'none':
+		spfResult = spfResult.lower().capitalize()
+		if spfResult == 'None':
 			#  allow checking to continue on to other checkers if no SPF
 			return(( None, None ))
 		if sender:

@@ -1,4 +1,10 @@
 ================================
+Version 1.31 -- Thu Nov 01, 2007
+
+Patch from Miklos HONTI to fix a bug in the SPF checker that would prevent
+      it from continuing on if SPF returns "none".
+
+================================
 Version 1.30 -- Tue Oct 16, 2007
 
 Fixing thinko in the patch in the last release.  Submitted by Thomas Goirand
