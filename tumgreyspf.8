@@ -14,10 +14,12 @@ tumgreyspf \- an external policy checker for the postfix mail server
 Tumgreyspf can optionally greylist and/or use spfquery to check SPF records
 to determine if email should be accepted by your server.
 
-Because of it's design, legitimate e-mail is never trapped or rejected.
-Only spam and viruses are caught. If you add tumgreyspf to your mail server
-(also compatible when using Spam Assassin, ClamAV, and an outsourced
-anti-spam system), your spam level will be dropped by an order of magnitude.
+SPF is information published by the domain owner about what systems may
+legitimately send e-mail for the domain.  Greylisting takes advantage
+of spam and viruses that do not follow the RFCs and retry deliveries on
+temporary failure.  We use these checks as part of our mail system and
+have seen several orders of magnitude reduction in spam, lower system
+load, and few problems with legitimate mail getting blocked.
 
 Tumgreyspf uses the file-system as it's database, no additional database is
 required to use it.
