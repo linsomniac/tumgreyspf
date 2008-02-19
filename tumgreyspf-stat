@@ -63,10 +63,21 @@ def visit(config, dirname, fileList):
 		if stats:
 			stats = ' (%s)' % stats[:-1]
 
+		def prettyseconds(seconds):
+			for prettySeconds, prettyDescription in (
+					( 86400, 'd' ),
+					( 3600, 'h' ),
+					( 60, 'm' ),
+					):
+				if seconds > prettySeconds:
+					return('%d%s' % ( seconds / prettySeconds, prettyDescription ))
+			return('%ss' % seconds)
+
 		#  display information
 		print ('IP=%s SENDER=%s RECIPIENT=%s STARTS=%d LAST=%d EXPIRESIN=%s%s'
-				% ( ip, sender, recipient, now - mtime, now - ctime,
-					int(expireTime - now), stats ))
+				% ( ip, sender, recipient, prettyseconds(now - mtime),
+					prettyseconds(now - ctime),
+					prettyseconds(int(expireTime - now)), stats ))
 
 
 ############################
