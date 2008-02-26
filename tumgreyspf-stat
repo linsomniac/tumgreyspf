@@ -74,7 +74,7 @@ def visit(config, dirname, fileList):
 			return('%ss' % seconds)
 
 		#  display information
-		print ('IP=%s SENDER=%s RECIPIENT=%s STARTS=%d LAST=%d EXPIRESIN=%s%s'
+		print ('IP=%s SENDER=%s RECIPIENT=%s STARTS=%s LAST=%s EXPIRESIN=%s%s'
 				% ( ip, sender, recipient, prettyseconds(now - mtime),
 					prettyseconds(now - ctime),
 					prettyseconds(int(expireTime - now)), stats ))
