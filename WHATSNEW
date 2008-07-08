@@ -1,4 +1,6 @@
 Pretty print the time in tumgreyspf-stat, based on code by Luis Botero.
+Fixing a code bug causing error "lobal name 'Except' is not defined"
+      Reported by Joe Lowe.
 
 ================================
 Version 1.32 -- Thu Nov 29, 2007
