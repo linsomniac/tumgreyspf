@@ -1,5 +1,8 @@
+================================
+Version 1.33 -- Sun Jul 20, 2008
+
 Pretty print the time in tumgreyspf-stat, based on code by Luis Botero.
-Fixing a code bug causing error "lobal name 'Except' is not defined"
+Fixing a code bug causing error "global name 'Except' is not defined"
       Reported by Joe Lowe.
 
 ================================
