@@ -1,4 +1,10 @@
 ================================
+Version 1.34 -- Wed Jun 10, 2009
+
+Fixing a bug which caused many SPF return results to bypass greylisting.
+      Identified by Tomasz 'urug' Olszewski
+
+================================
 Version 1.33 -- Sun Jul 20, 2008
 
 Pretty print the time in tumgreyspf-stat, based on code by Luis Botero.

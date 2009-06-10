@@ -361,7 +361,7 @@ while 1:
 				if configData.get('SPFSEEDONLY', 0):
 					checkerValue = None
 					checkerReason = None
-				if checkerValue != None: break
+				if checkerValue != None and checkerValue != 'prepend': break
 			elif checkerType == 'blackhole':
 				checkerValue, checkerReason = blackholecheck(data, configData,
 						configGlobal)
