@@ -1,4 +1,10 @@
 ================================
+Version 1.35 -- Wed Jul 23, 2009
+
+Fixed a bug caused when the SPF record has a NUL in it.
+      Reported by Thomas Goirand
+
+================================
 Version 1.34 -- Wed Jun 10, 2009
 
 Fixing a bug which caused many SPF return results to bypass greylisting.

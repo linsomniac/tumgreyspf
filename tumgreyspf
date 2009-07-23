@@ -100,7 +100,7 @@ def spfcheck(data, configData, configGlobal):  #{{{1
 			header = 'TumGreySPF-Warning: SPF Check failed: %s' % str(e)
 			return(( 'prepend', header ))
 
-		spfReason = string.strip(ret[1])
+		spfReason = repr(str(string.strip(ret[1])))
 		spfResult = string.strip(ret[0])
 		spfResult = spfResult.lower().capitalize()
 		if spfResult == 'None':
@@ -117,15 +117,15 @@ def spfcheck(data, configData, configGlobal):  #{{{1
 					data.get('sender', '<UNKNOWN>'),
 					data.get('recipient', '<UNKNOWN>'),
 					))
-		syslog.syslog('%s: %s; %s' % ( str(spfReason), queue_id, spfDetail ))
+		syslog.syslog('%s: %s; %s' % ( spfReason, queue_id, spfDetail ))
 		
 		if spfResult == 'Fail' or spfResult == 'Permerror':
-			return(( 'reject', '%s SPF Reports: %s' 
-				% ( queue_id, str(spfReason) )))
+			return(( 'reject', '%s SPF Reports: %s' % ( queue_id, spfReason )))
 
 		if spfResult == 'Temperror':
-			return(( 'defer', '%s SPF Reports: %s' % ( queue_id, str(spfReason) )))
-		header = 'Received-SPF: '+ spfResult + ' (' + spfReason +') ' + spfDetail
+			return(( 'defer', '%s SPF Reports: %s' % ( queue_id, spfReason )))
+		header = ('Received-SPF: '+ spfResult + ' (' + spfReason
+				+ ') ' + spfDetail)
 		
 		return(( 'prepend', header ))
 	else:
@@ -137,7 +137,7 @@ def spfcheck(data, configData, configGlobal):  #{{{1
 			return(( 'prepend', header ))
 
 		spfResult = string.strip(ret[0])
-		spfReason = string.strip(ret[2])
+		spfReason = repr(str(string.strip(ret[2])))
 
 		#  try spfquery
 		if not spfResult:
@@ -158,7 +158,7 @@ def spfcheck(data, configData, configGlobal):  #{{{1
 			if debugLevel:
 				syslog.syslog('spfcheck: spfquery result: "%s"' % str(spfData))
 			spfResult = string.strip(spfData[0])
-			spfReason = string.strip(spfData[1])
+			spfReason = repr(str(string.strip(spfData[1])))
 
 		#  read result
 		if spfResult == 'fail' or spfResult == 'deny':
@@ -171,7 +171,7 @@ def spfcheck(data, configData, configGlobal):  #{{{1
 						queue_id, spfReason ) )
 
 			return(( 'reject', '%s SPF Reports: %s'
-					% ( queue_id, str(spfReason) ) ))
+					% ( queue_id, spfReason ) ))
 
 	if debugLevel:
 		syslog.syslog('spfcheck: pyspf result: "%s"' % str(ret))
