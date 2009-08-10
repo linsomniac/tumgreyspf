@@ -23,14 +23,18 @@ def visit(config, dirname, fileList):
 	ospathjoin = os.path.join
 	base = config['greylistBasedir']
 	rx = re.compile(r'^/?(\d+)/(\d+)/(\d+)/((\d+)/)?greylist/(.*)$')
+	rxIp = re.compile(r'^/?(\d+)/(\d+)/(\d+)/((\d+)/)?check_file')
 	didUnlink = 0
 	for file in fileList:
 		path = ospathjoin(dirname, file)
 		if not ospathisfile(path): continue
 
 		recipient = file
-		relative = dirname[len(base):]
-		m = rx.match(relative)
+		relative = path[len(base):]
+		if configGlobal['greylistByIPOnly'] > 0:
+			m = rxIp.match(relative)
+		else:
+			m = rx.match(relative)
 		if not m:
 			print 'Unknown path "%s" found in greylist directory.' % relative
 			continue

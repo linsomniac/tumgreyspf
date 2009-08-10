@@ -1,3 +1,6 @@
+Bug fixed in tumgreyspf-clean when using greylistIpOnly, it wasn't removing
+      greylist entries.  Reported by Thomas Goirand and others.
+
 ================================
 Version 1.35 -- Wed Jul 23, 2009
 
