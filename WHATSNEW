@@ -1,3 +1,5 @@
+Changed README to put tumgreyspf in recipient restrictions, not sender.
+      Reported by George Sexton.
 Bug fixed in tumgreyspf-clean when using greylistIpOnly, it wasn't removing
       greylist entries.  Reported by Michael Meelis and others.
 
