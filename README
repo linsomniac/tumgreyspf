@@ -381,3 +381,15 @@ INSTALL INSTRUCTIONS
          The Python pyspf package from http://www.wayforward.net/spf/ can
          also be used.  If this is installed, tumgreyspf will automatically
          use it.
+
+COMMON PROBLEMS
+
+   SPF checks need to be bypassed for relays for the domain, such as
+   secondary MX servers.  Putting an mx entry in your SPF TXT record is
+   not sufficient to do this, as that only covers your *OUTGOING* e-mail.
+   Incoming e-mail is controlled by the senders SPF record, which probably
+   doesn't list your secondary MX hosts.  :-)
+
+   One way of bypassing this check would be to ensure that MX servers are
+   listed in mynetworks, and that permit_mynetworks is ahead of the call to
+   tumgreyspf.
