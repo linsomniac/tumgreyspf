@@ -119,11 +119,16 @@ def spfcheck(data, configData, configGlobal):  #{{{1
 					))
 		syslog.syslog('%s: %s; %s' % ( spfReason, queue_id, spfDetail ))
 		
-		if spfResult == 'Fail' or spfResult == 'Permerror':
+		if spfResult == 'Fail':
+			return(( 'reject', '%s SPF Reports: %s' % ( queue_id, spfReason )))
+
+		spfAcceptOnPermError = configGlobal.get('spfAcceptOnPermError', 1)
+		if spfResult == 'Permerror' and not spfAcceptOnPermError:
 			return(( 'reject', '%s SPF Reports: %s' % ( queue_id, spfReason )))
 
 		if spfResult == 'Temperror':
 			return(( 'defer', '%s SPF Reports: %s' % ( queue_id, spfReason )))
+
 		header = ('Received-SPF: '+ spfResult + ' (' + spfReason
 				+ ') ' + spfDetail)
 		

@@ -1,3 +1,6 @@
+New configuration setting "spfAcceptOnPermError" will accept e-mail from
+      hosts that have invalid SPF records.  This is probably the right
+      thing to do, so defaulting to enabled.  Contributed by Jesse Norell.
 Added a "COMMON PROBLEMS" section to README, with suggested text from
       George Sexton.
 Changed README to put tumgreyspf in recipient restrictions, not sender.
