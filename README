@@ -1,6 +1,8 @@
 tumgreyspf README
-$Id: README,v 1.12 2006-10-29 17:00:09 jafo Exp $
-=================
+Sean Reifschneider <jafo@tummy.com>
+Homepage: http://www.tummy.com/Community/software/tumgreyspf/
+Code/bugfixes: https://github.com/linsomniac/tumgreyspf
+=============================================================
 
 This is tumgreyspf, an external policy checker for the postfix mail
 server.  It can optionally greylist and/or use spfquery to check SPF
