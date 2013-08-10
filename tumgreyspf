@@ -7,7 +7,15 @@
 #  All Rights Reserved
 #  <jafo@tummy.com>
 
-import syslog, os, sys, string, re, time, popen2, urllib, stat, errno, socket
+import syslog
+import os
+import sys
+import string
+import re
+import time
+import popen2
+import errno
+import socket
 import spf
 sys.path.append('/usr/local/lib/tumgreyspf')
 import tumgreyspfsupp
