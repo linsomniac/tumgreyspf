@@ -1,3 +1,10 @@
+Handling pyspf 2.0.8 and higher which remove some functions we rely on.
+      Reported by Jeroen Ruigrok van der Werven
+Simplifying the loopback detection code, using simple address checking
+      or CIDR testing if the ipaddress module is available.
+Adding a unittest if run with "--test", currently just testing loopback
+      detection code.
+
 ================================
 Version 1.36 -- Thu Nov 24, 2011
 

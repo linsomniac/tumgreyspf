@@ -23,46 +23,29 @@ import tumgreyspfsupp
 syslog.openlog(os.path.basename(sys.argv[0]), syslog.LOG_PID, syslog.LOG_MAIL)
 tumgreyspfsupp.setExceptHook()
 
-#############################################
-def cidrmatch(connectip, ipaddrs, n):
-    """Match connect IP against a list of other IP addresses. From pyspf."""
+
+#########################
+def is_loopback(address):
+    '''Return true if address is a loopback IP.'''
+    if (
+            address in ['127.0.0.1', '::1']
+            or address.startswith('127.0.0.')
+            ):
+        return True
 
     try:
-        if connectip.count(':'):
-            MASK = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFL
-            connectip = spf.inet_pton(connectip)
-            for arg in ipaddrs:
-                ipaddrs[ipaddrs.index(arg)] = spf.inet_pton(arg)
-            bin = spf.bin2long6
-        else:
-            MASK = 0xFFFFFFFFL
-            bin = spf.addr2bin
-        c = ~(MASK >> n) & MASK & bin(connectip)
-        for ip in [bin(ip) for ip in ipaddrs]:
-            if c == ~(MASK >> n) & MASK & ip: return True
-    except socket.error: pass
+        import ipaddress
+    except ImportError:
+        return False
+
+    loopback_cidrs = ['127.0.0.0/8', '::ffff:127.0.0.0/104', '::1/128',]
+    compare = ipaddress.ip_interface(address).network.overlaps
+    for cidr in loopback_cidrs:
+        if compare(ipaddress.ip_interface(cidr).network):
+            return True
+
     return False
 
-def parse_cidr(cidr_ip):
-    """Breaks CIDR notation into a (address,cidr,cidr6) tuple.  The cidr 
-       defaults to 32 if not present. Derived from pyspf"""
-    import re
-    RE_DUAL_CIDR = re.compile(r'//(0|[1-9]\d*)$')
-    RE_CIDR = re.compile(r'/(0|[1-9]\d*)$')
-    a = RE_DUAL_CIDR.split(cidr_ip)
-    if len(a) == 3:
-        cidr_ip, cidr6 = a[0], int(a[1])
-    else:
-        cidr6 = None
-    a = RE_CIDR.split(cidr_ip)
-    if len(a) == 3:
-        cidr_ip, cidr = a[0], int(a[1])
-    else:
-        cidr = None
-    b = cidr_ip.split(':', 1)
-    if len(b) < 2:
-        return cidr_ip, cidr
-    return a[0], cidr6
 
 #############################################
 def spfcheck(data, configData, configGlobal):  #{{{1
@@ -72,14 +55,9 @@ def spfcheck(data, configData, configGlobal):  #{{{1
 	if ip == None:
 		if debugLevel: syslog.syslog('spfcheck: No client address, exiting')
 		return(( None, None ))
-	# Do not check SPF for localhost addresses - add to skip addresses to 
-	# skip SPF for internal networks if desired.
-	skip_addresses = ['127.0.0.0/8', '::ffff:127.0.0.0//104', '::1//128',]
-	for cidr in skip_addresses:
-		parsed_address = parse_cidr(cidr)
-		good_ip = [parsed_address[0],]
-		if cidrmatch(ip, good_ip, int(parsed_address[1])):
-			return (( None, 'SPF check N/A for local connections' ))
+
+	if is_loopback(ip):
+		return (( None, 'SPF check N/A for local connections' ))
 
 	sender = data.get('sender')
 	helo = data.get('helo_name')
@@ -326,12 +304,37 @@ def blackholecheck(data, configData, configGlobal):  #{{{1
 	return(( None, None ))
 
 
+################
+def run_tests():
+    import unittest
+
+    class Tests(unittest.TestCase):
+        def test_is_loopback(self):
+            self.assertEqual(is_loopback('10.1.1.1'), False)
+            self.assertEqual(is_loopback('127.0.0.1'), True)
+            self.assertEqual(is_loopback('::1'), True)
+
+            try:
+                import ipaddress
+                #  tests using ipaddress module (if available)
+                self.assertEqual(is_loopback('127.0.1.1'), True)
+            except ImportError:
+                pass
+
+    suite = unittest.TestLoader().loadTestsFromTestCase(Tests)
+    unittest.TextTestRunner(verbosity=2).run(suite)
+
+
 ###################
 #  load config file  {{{1
 configFile = tumgreyspfsupp.defaultConfigFilename
 if len(sys.argv) > 1:
+    if '--test' in sys.argv[1:]:
+        run_tests()
+        sys.exit(0)
+
 	if sys.argv[1] in ( '-?', '--help', '-h' ):
-		print 'usage: tumgreyspf [<configfilename>]'
+		print 'usage: tumgreyspf [<configfilename> | --test]'
 		sys.exit(1)
 	configFile = sys.argv[1]
 configGlobal = tumgreyspfsupp.processConfigFile(filename = configFile)
