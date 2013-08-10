@@ -48,7 +48,7 @@ def is_loopback(address):
 
 
 #############################################
-def spfcheck(data, configData, configGlobal):  #{{{1
+def spfcheck(data, configData, configGlobal):
 	debugLevel = configGlobal.get('debugLevel', 0)
 	queue_id = ('QUEUE_ID="%s"' % ( data.get('queue_id', '<UNKNOWN>')))
 	ip = data.get('client_address')
@@ -168,7 +168,7 @@ def spfcheck(data, configData, configGlobal):  #{{{1
 
 
 ##################################################
-def greylistcheck(data, configData, configGlobal):  #{{{1
+def greylistcheck(data, configData, configGlobal):
 	greylistDir = configGlobal['greylistDir']
 
 	ip = data.get('client_address')
@@ -269,7 +269,7 @@ def greylistcheck(data, configData, configGlobal):  #{{{1
 
 
 ###################################################
-def blackholecheck(data, configData, configGlobal):  #{{{1
+def blackholecheck(data, configData, configGlobal):
 	blackholeDir = configGlobal['blackholeDir']
 
 	ip = data.get('client_address')
@@ -326,7 +326,7 @@ def run_tests():
 
 
 ###################
-#  load config file  {{{1
+#  load config file
 configFile = tumgreyspfsupp.defaultConfigFilename
 if len(sys.argv) > 1:
     if '--test' in sys.argv[1:]:
@@ -339,7 +339,7 @@ if len(sys.argv) > 1:
 	configFile = sys.argv[1]
 configGlobal = tumgreyspfsupp.processConfigFile(filename = configFile)
 
-#  loop reading data  {{{1
+#  loop reading data
 debugLevel = configGlobal.get('debugLevel', 0)
 if debugLevel >= 2: syslog.syslog('Starting')
 instance_list = []
@@ -351,14 +351,14 @@ while 1:
 	line = string.rstrip(line)
 	if debugLevel >= 4: syslog.syslog('Read line: "%s"' % line)
 
-	#  end of entry  {{{2
+	#  end of entry
 	if not line:
 		if debugLevel >= 4: syslog.syslog('Found the end of entry')
 		configData = tumgreyspfsupp.lookupConfig(configGlobal.get('configPath'),
 				data, configGlobal)
 		if debugLevel >= 2: syslog.syslog('Config: %s' % str(configData))
 
-		#  run the checkers  {{{3
+		#  run the checkers
 		checkerValue = None
 		checkerReason = None
 		for checkerType in string.split(configData.get('CHECKERS', ''), ','):
@@ -380,7 +380,7 @@ while 1:
 						configGlobal)
 				if checkerValue != None: break
 
-		#  handle results  {{{3
+		#  handle results
 
 		if checkerValue == 'reject':
 			sys.stdout.write('action=550 %s\n\n' % checkerReason)
@@ -405,18 +405,18 @@ while 1:
 		else:
 			sys.stdout.write('action=dunno\n\n')
 
-		#  end of record  {{{3
+		#  end of record
 		sys.stdout.flush()
 		data = {}
 		continue
 
-	#  parse line  {{{2
+	#  parse line
 	m = lineRx.match(line)
 	if not m: 
 		syslog.syslog('ERROR: Could not match line "%s"' % line)
 		continue
 
-	#  save the string  {{{2
+	#  save the string
 	key = m.group(1)
 	value = m.group(2)
 	if key not in [ 'protocol_state', 'protocol_name', 'queue_id' ]:
