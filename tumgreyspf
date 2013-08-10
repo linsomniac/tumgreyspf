@@ -15,7 +15,6 @@ import re
 import time
 import popen2
 import errno
-import socket
 import spf
 sys.path.append('/usr/local/lib/tumgreyspf')
 import tumgreyspfsupp
@@ -38,7 +37,7 @@ def is_loopback(address):
     except ImportError:
         return False
 
-    loopback_cidrs = ['127.0.0.0/8', '::ffff:127.0.0.0/104', '::1/128',]
+    loopback_cidrs = ['127.0.0.0/8', '::ffff:127.0.0.0/104', '::1/128']
     compare = ipaddress.ip_interface(address).network.overlaps
     for cidr in loopback_cidrs:
         if compare(ipaddress.ip_interface(cidr).network):
@@ -49,259 +48,277 @@ def is_loopback(address):
 
 #############################################
 def spfcheck(data, configData, configGlobal):
-	debugLevel = configGlobal.get('debugLevel', 0)
-	queue_id = ('QUEUE_ID="%s"' % ( data.get('queue_id', '<UNKNOWN>')))
-	ip = data.get('client_address')
-	if ip == None:
-		if debugLevel: syslog.syslog('spfcheck: No client address, exiting')
-		return(( None, None ))
+    debugLevel = configGlobal.get('debugLevel', 0)
+    queue_id = ('QUEUE_ID="%s"' % (data.get('queue_id', '<UNKNOWN>')))
+    ip = data.get('client_address')
+    if ip == None:
+        if debugLevel:
+            syslog.syslog('spfcheck: No client address, exiting')
+        return((None, None))
 
-	if is_loopback(ip):
-		return (( None, 'SPF check N/A for local connections' ))
+    if is_loopback(ip):
+        return ((None, 'SPF check N/A for local connections'))
 
-	sender = data.get('sender')
-	helo = data.get('helo_name')
-	if not sender and not helo:
-		if debugLevel: syslog.syslog('spfcheck: No sender or helo, exiting')
-		return(( None, None ))
+    sender = data.get('sender')
+    helo = data.get('helo_name')
+    if not sender and not helo:
+        if debugLevel:
+            syslog.syslog('spfcheck: No sender or helo, exiting')
+        return((None, None))
 
-	#  if no helo name sent, use domain from sender
-	if not helo:
-		foo = string.split(sender, '@', 1)
-		if len(foo) <  2: helo = 'unknown'
-		else: helo = foo[1]
+    #  if no helo name sent, use domain from sender
+    if not helo:
+        foo = string.split(sender, '@', 1)
+        if len(foo) < 2:
+            helo = 'unknown'
+        else:
+            helo = foo[1]
 
-	#  start query
-	spfResult = None
-	spfReason = None
+    #  start query
+    spfResult = None
+    spfReason = None
 
-	if hasattr(spf, 'check2'):
-		#  use the pySPF 2.0/RFC 4408 interface
-		try:
-			ret = spf.check2(i = ip, s = sender, h = helo)
-		except Exception, e:
-			header = 'TumGreySPF-Warning: SPF Check failed: %s' % str(e)
-			return(( 'prepend', header ))
+    if hasattr(spf, 'check2'):
+        #  use the pySPF 2.0/RFC 4408 interface
+        try:
+            ret = spf.check2(i=ip, s=sender, h=helo)
+        except Exception, e:
+            header = 'TumGreySPF-Warning: SPF Check failed: %s' % str(e)
+            return(('prepend', header))
 
-		spfReason = repr(str(string.strip(ret[1])))
-		spfResult = string.strip(ret[0])
-		spfResult = spfResult.lower().capitalize()
-		if spfResult == 'None':
-			#  allow checking to continue on to other checkers if no SPF
-			return(( None, None ))
-		if sender:
-			identity = 'identity=mailfrom; '
-		else:
-			identity = 'identity=helo; '
-		spfDetail = (identity + 'client-ip=%s; helo=%s; envelope-from=%s; '
-				'receiver=%s; '
-				% ( data.get('client_address', '<UNKNOWN>'),
-					data.get('helo_name', '<UNKNOWN>'),
-					data.get('sender', '<UNKNOWN>'),
-					data.get('recipient', '<UNKNOWN>'),
-					))
-		syslog.syslog('%s: %s; %s' % ( spfReason, queue_id, spfDetail ))
-		
-		if spfResult == 'Fail':
-			return(( 'reject', '%s SPF Reports: %s' % ( queue_id, spfReason )))
+        spfReason = repr(str(string.strip(ret[1])))
+        spfResult = string.strip(ret[0])
+        spfResult = spfResult.lower().capitalize()
+        if spfResult == 'None':
+            #  allow checking to continue on to other checkers if no SPF
+            return((None, None))
+        if sender:
+            identity = 'identity=mailfrom; '
+        else:
+            identity = 'identity=helo; '
+        spfDetail = (identity + 'client-ip=%s; helo=%s; envelope-from=%s; '
+                'receiver=%s; ' % (
+                    data.get('client_address', '<UNKNOWN>'),
+                    data.get('helo_name', '<UNKNOWN>'),
+                    data.get('sender', '<UNKNOWN>'),
+                    data.get('recipient', '<UNKNOWN>'),
+                    ))
+        syslog.syslog('%s: %s; %s' % (spfReason, queue_id, spfDetail))
 
-		spfAcceptOnPermError = configGlobal.get('spfAcceptOnPermError', 1)
-		if spfResult == 'Permerror' and not spfAcceptOnPermError:
-			return(( 'reject', '%s SPF Reports: %s' % ( queue_id, spfReason )))
+        if spfResult == 'Fail':
+            return(('reject', '%s SPF Reports: %s' % (queue_id, spfReason)))
 
-		if spfResult == 'Temperror':
-			return(( 'defer', '%s SPF Reports: %s' % ( queue_id, spfReason )))
+        spfAcceptOnPermError = configGlobal.get('spfAcceptOnPermError', 1)
+        if spfResult == 'Permerror' and not spfAcceptOnPermError:
+            return(('reject', '%s SPF Reports: %s' % (queue_id, spfReason)))
 
-		header = ('Received-SPF: '+ spfResult + ' (' + spfReason
-				+ ') ' + spfDetail)
-		
-		return(( 'prepend', header ))
-	else:
-		#  fall back to older pre-RFC interface
-		try:
-			ret = spf.check(i = ip, s = sender, h = helo)
-		except Exception, e:
-			header = 'TumGreySPF-Warning: SPF Check failed: %s' % str(e)
-			return(( 'prepend', header ))
+        if spfResult == 'Temperror':
+            return(('defer', '%s SPF Reports: %s' % (queue_id, spfReason)))
 
-		spfResult = string.strip(ret[0])
-		spfReason = repr(str(string.strip(ret[2])))
+        header = ('Received-SPF: ' + spfResult + ' (' + spfReason
+                + ') ' + spfDetail)
 
-		#  try spfquery
-		if not spfResult:
-			#  check for spfquery
-			spfqueryPath = configGlobal['spfqueryPath']
-			if not os.path.exists(spfqueryPath):
-				if debugLevel:
-					syslog.syslog('spfcheck: No spfquery at "%s", exiting'
-							% spfqueryPath)
-				return(( None, None ))
+        return(('prepend', header))
+    else:
+        #  fall back to older pre-RFC interface
+        try:
+            ret = spf.check(i=ip, s=sender, h=helo)
+        except Exception, e:
+            header = 'TumGreySPF-Warning: SPF Check failed: %s' % str(e)
+            return(('prepend', header))
 
-			#  open connection to spfquery
-			fpIn, fpOut = popen2.popen2('%s -file -' % spfqueryPath)
-			fpOut.write('%s %s %s\n' % ( ip, sender, helo ))
-			fpOut.close()
-			spfData = fpIn.readlines()
-			fpIn.close()
-			if debugLevel:
-				syslog.syslog('spfcheck: spfquery result: "%s"' % str(spfData))
-			spfResult = string.strip(spfData[0])
-			spfReason = repr(str(string.strip(spfData[1])))
+        spfResult = string.strip(ret[0])
+        spfReason = repr(str(string.strip(ret[2])))
 
-		#  read result
-		if spfResult == 'fail' or spfResult == 'deny':
-			syslog.syslog('SPF fail: REMOTEIP="%s" HELO="%s" SENDER="%s" '
-					'RECIPIENT="%s" %s REASON="%s"'
-					% ( data.get('client_address', '<UNKNOWN>'),
-						data.get('helo_name', '<UNKNOWN>'),
-						data.get('sender', '<UNKNOWN>'),
-						data.get('recipient', '<UNKNOWN>'),
-						queue_id, spfReason ) )
+        #  try spfquery
+        if not spfResult:
+            #  check for spfquery
+            spfqueryPath = configGlobal['spfqueryPath']
+            if not os.path.exists(spfqueryPath):
+                if debugLevel:
+                    syslog.syslog('spfcheck: No spfquery at "%s", exiting'
+                            % spfqueryPath)
+                return((None, None))
 
-			return(( 'reject', '%s SPF Reports: %s'
-					% ( queue_id, spfReason ) ))
+            #  open connection to spfquery
+            fpIn, fpOut = popen2.popen2('%s -file -' % spfqueryPath)
+            fpOut.write('%s %s %s\n' % (ip, sender, helo))
+            fpOut.close()
+            spfData = fpIn.readlines()
+            fpIn.close()
+            if debugLevel:
+                syslog.syslog('spfcheck: spfquery result: "%s"' % str(spfData))
+            spfResult = string.strip(spfData[0])
+            spfReason = repr(str(string.strip(spfData[1])))
 
-	if debugLevel:
-		syslog.syslog('spfcheck: pyspf result: "%s"' % str(ret))
+        #  read result
+        if spfResult == 'fail' or spfResult == 'deny':
+            syslog.syslog('SPF fail: REMOTEIP="%s" HELO="%s" SENDER="%s" '
+                    'RECIPIENT="%s" %s REASON="%s"'
+                    % (
+                        data.get('client_address', '<UNKNOWN>'),
+                        data.get('helo_name', '<UNKNOWN>'),
+                        data.get('sender', '<UNKNOWN>'),
+                        data.get('recipient', '<UNKNOWN>'),
+                        queue_id, spfReason
+                        ))
 
-	return(( None, None ))
+            return(('reject', '%s SPF Reports: %s' % (queue_id, spfReason)))
+
+    if debugLevel:
+        syslog.syslog('spfcheck: pyspf result: "%s"' % str(ret))
+
+    return((None, None))
 
 
 ##################################################
 def greylistcheck(data, configData, configGlobal):
-	greylistDir = configGlobal['greylistDir']
+    greylistDir = configGlobal['greylistDir']
 
-	ip = data.get('client_address')
-	if ip == None:
-		return(( None, None ))
-	ipBytes = string.split(ip, '.')
-	if configGlobal['ignoreLastByte'] > 0: ipBytes = ipBytes[:-1]
-	ipPath = string.join(ipBytes, '/')
-	
-	if configGlobal['greylistByIPOnly'] > 0:
-		dir = os.path.join(greylistDir, ipPath)
-		path = os.path.join(dir, 'check_file')
-	else:
-		sender = data.get('sender')
-		recipient = data.get('recipient')
-		if not sender or not recipient:
-			return(( None, None ))
-		sender = tumgreyspfsupp.quoteAddress(sender)
-		recipient = tumgreyspfsupp.quoteAddress(recipient)
-		dir = os.path.join(greylistDir, 'client_address', ipPath, 'greylist',
-				sender)
-		path = os.path.join(dir, recipient)
+    ip = data.get('client_address')
+    if ip == None:
+        return((None, None))
+    ipBytes = string.split(ip, '.')
+    if configGlobal['ignoreLastByte'] > 0:
+        ipBytes = ipBytes[:-1]
+    ipPath = string.join(ipBytes, '/')
 
-	allowTime = configData.get('GREYLISTTIME', 600)
+    if configGlobal['greylistByIPOnly'] > 0:
+        dir = os.path.join(greylistDir, ipPath)
+        path = os.path.join(dir, 'check_file')
+    else:
+        sender = data.get('sender')
+        recipient = data.get('recipient')
+        if not sender or not recipient:
+            return((None, None))
+        sender = tumgreyspfsupp.quoteAddress(sender)
+        recipient = tumgreyspfsupp.quoteAddress(recipient)
+        dir = os.path.join(greylistDir, 'client_address', ipPath, 'greylist',
+                sender)
+        path = os.path.join(dir, recipient)
 
-	if not os.path.exists(path):
-		if not os.path.exists(dir):
-			#  if multiple messages come in at once
-			#  it can cause multiple makedirs
-			for i in xrange(10):
-				try:
-					os.makedirs(dir)
-					break
-				except OSError, msg:
-					if msg.errno != errno.EEXIST: raise
-					time.sleep(1)
+    allowTime = configData.get('GREYLISTTIME', 600)
 
+    if not os.path.exists(path):
+        if not os.path.exists(dir):
+            #  if multiple messages come in at once
+            #  it can cause multiple makedirs
+            for i in xrange(10):
+                try:
+                    os.makedirs(dir)
+                    break
+                except OSError, msg:
+                    if msg.errno != errno.EEXIST:
+                        raise
+                    time.sleep(1)
 
-			#  still didn't succeed
-			if not os.path.exists(dir):
-				syslog.syslog(('ERROR: Could not create directory after '
-						'10 seconds: "%s"') % dir)
-				return(( 'defer', 'Service unavailable, error creating data '
-						'directory.  See /var/log/maillog for more information.' ))
+            #  still didn't succeed
+            if not os.path.exists(dir):
+                syslog.syslog(('ERROR: Could not create directory after '
+                        '10 seconds: "%s"') % dir)
+                return (
+                    'defer', 'Service unavailable, error creating data '
+                    'directory.  See /var/log/maillog for more information.'
+                    )
 
-		#  create file
-		open(path, 'w').close()
-		now = time.time()
-		mtime = now + allowTime
-		os.utime(path, ( now, mtime ))
+        #  create file
+        open(path, 'w').close()
+        now = time.time()
+        mtime = now + allowTime
+        os.utime(path, (now, mtime))
 
-		if configGlobal.get('defaultSeedOnly'):
-			syslog.syslog(
-					'Training greylisting: REMOTEIP="%s" HELO="%s" SENDER="%s" '
-					'RECIPIENT="%s" QUEUEID="%s"'
-					% ( data.get('client_address', '<UNKNOWN>'),
-						data.get('helo_name', '<UNKNOWN>'),
-						data.get('sender', '<UNKNOWN>'),
-						data.get('recipient', '<UNKNOWN>'),
-						data.get('queue_id', '<UNKNOWN>'), ) )
-			return(( None, None ))
+        if configGlobal.get('defaultSeedOnly'):
+            syslog.syslog(
+                    'Training greylisting: REMOTEIP="%s" HELO="%s" '
+                    'SENDER="%s" RECIPIENT="%s" QUEUEID="%s"'
+                    % (
+                        data.get('client_address', '<UNKNOWN>'),
+                        data.get('helo_name', '<UNKNOWN>'),
+                        data.get('sender', '<UNKNOWN>'),
+                        data.get('recipient', '<UNKNOWN>'),
+                        data.get('queue_id', '<UNKNOWN>')
+                        ))
+            return((None, None))
 
-		syslog.syslog('Initial greylisting: REMOTEIP="%s" HELO="%s" SENDER="%s" '
-				'RECIPIENT="%s" QUEUEID="%s"'
-				% ( data.get('client_address', '<UNKNOWN>'),
-					data.get('helo_name', '<UNKNOWN>'),
-					data.get('sender', '<UNKNOWN>'),
-					data.get('recipient', '<UNKNOWN>'),
-					data.get('queue_id', '<UNKNOWN>'), ) )
+        syslog.syslog('Initial greylisting: REMOTEIP="%s" HELO="%s" '
+                'SENDER="%s" RECIPIENT="%s" QUEUEID="%s"' % (
+                    data.get('client_address', '<UNKNOWN>'),
+                    data.get('helo_name', '<UNKNOWN>'),
+                    data.get('sender', '<UNKNOWN>'),
+                    data.get('recipient', '<UNKNOWN>'),
+                    data.get('queue_id', '<UNKNOWN>')
+                    ))
 
-		return(( 'defer', 'Service unavailable, greylisted '
-				'(http://projects.puremagic.com/greylisting/).' ))
+        return (
+            'defer', 'Service unavailable, greylisted '
+            '(http://projects.puremagic.com/greylisting/).'
+            )
 
-	#  is it time to allow yet
-	mtime = os.stat(path)[8]
-	now = time.time()
-	os.utime(path, ( now, mtime ))
-	if mtime > now and not configGlobal.get('defaultSeedOnly'):
-		syslog.syslog('Pending greylisting: REMOTEIP="%s" HELO="%s" SENDER="%s" '
-				'RECIPIENT="%s" QUEUEID="%s"'
-				% ( data.get('client_address', '<UNKNOWN>'),
-					data.get('helo_name', '<UNKNOWN>'),
-					data.get('sender', '<UNKNOWN>'),
-					data.get('recipient', '<UNKNOWN>'),
-					data.get('queue_id', '<UNKNOWN>'), ) )
+    #  is it time to allow yet
+    mtime = os.stat(path)[8]
+    now = time.time()
+    os.utime(path, (now, mtime))
+    if mtime > now and not configGlobal.get('defaultSeedOnly'):
+        syslog.syslog('Pending greylisting: REMOTEIP="%s" HELO="%s" '
+                'SENDER="%s" RECIPIENT="%s" QUEUEID="%s"' % (
+                    data.get('client_address', '<UNKNOWN>'),
+                    data.get('helo_name', '<UNKNOWN>'),
+                    data.get('sender', '<UNKNOWN>'),
+                    data.get('recipient', '<UNKNOWN>'),
+                    data.get('queue_id', '<UNKNOWN>')
+                    ))
 
-		return(( 'defer', 'Service unavailable, greylisted.' ))
+        return ('defer', 'Service unavailable, greylisted.')
 
-	syslog.syslog('Allowed greylisting: REMOTEIP="%s" HELO="%s" SENDER="%s" '
-			'RECIPIENT="%s" QUEUEID="%s"'
-			% ( data.get('client_address', '<UNKNOWN>'),
-				data.get('helo_name', '<UNKNOWN>'),
-				data.get('sender', '<UNKNOWN>'),
-				data.get('recipient', '<UNKNOWN>'),
-				data.get('queue_id', '<UNKNOWN>'), ) )
+    syslog.syslog('Allowed greylisting: REMOTEIP="%s" HELO="%s" SENDER="%s" '
+            'RECIPIENT="%s" QUEUEID="%s"'
+            % (
+                data.get('client_address', '<UNKNOWN>'),
+                data.get('helo_name', '<UNKNOWN>'),
+                data.get('sender', '<UNKNOWN>'),
+                data.get('recipient', '<UNKNOWN>'),
+                data.get('queue_id', '<UNKNOWN>')
+                ))
 
-	return(( None, None ))
+    return((None, None))
 
 
 ###################################################
 def blackholecheck(data, configData, configGlobal):
-	blackholeDir = configGlobal['blackholeDir']
+    blackholeDir = configGlobal['blackholeDir']
 
-	ip = data.get('client_address')
-	if ip == None:
-		return(( None, None ))
-	ipPath = string.join(string.split(ip, '.'), '/')
-	dir = os.path.join(blackholeDir, 'ips', ipPath)
-	
-	recipient = data.get('recipient')
-	if not recipient:
-		return(( None, None ))
-	recipient = tumgreyspfsupp.quoteAddress(recipient)
+    ip = data.get('client_address')
+    if ip == None:
+        return((None, None))
+    ipPath = string.join(string.split(ip, '.'), '/')
+    dir = os.path.join(blackholeDir, 'ips', ipPath)
 
-	#  add blackhole
-	recipientPath = os.path.join(blackholeDir, 'addresses', recipient)
-	if os.path.exists(recipientPath):
-		if not os.path.exists(dir):
-			os.path.makedirs(dir)
+    recipient = data.get('recipient')
+    if not recipient:
+        return((None, None))
+    recipient = tumgreyspfsupp.quoteAddress(recipient)
 
-	#  check for existing blackhole entry
-	if os.path.exists(dir):
-		syslog.syslog('Blackholed: REMOTEIP="%s" HELO="%s" SENDER="%s" '
-				'RECIPIENT="%s" QUEUEID="%s"'
-				% ( data.get('client_address', '<UNKNOWN>'),
-					data.get('helo_name', '<UNKNOWN>'),
-					data.get('sender', '<UNKNOWN>'),
-					data.get('recipient', '<UNKNOWN>'),
-					data.get('queue_id', '<UNKNOWN>'), ) )
+    #  add blackhole
+    recipientPath = os.path.join(blackholeDir, 'addresses', recipient)
+    if os.path.exists(recipientPath):
+        if not os.path.exists(dir):
+            os.path.makedirs(dir)
 
-		return(( 'reject', 'Service unavailable, blackholed.' ))
+    #  check for existing blackhole entry
+    if os.path.exists(dir):
+        syslog.syslog('Blackholed: REMOTEIP="%s" HELO="%s" SENDER="%s" '
+                'RECIPIENT="%s" QUEUEID="%s"'
+                % (
+                    data.get('client_address', '<UNKNOWN>'),
+                    data.get('helo_name', '<UNKNOWN>'),
+                    data.get('sender', '<UNKNOWN>'),
+                    data.get('recipient', '<UNKNOWN>'),
+                    data.get('queue_id', '<UNKNOWN>')
+                    ))
 
-	return(( None, None ))
+        return ('reject', 'Service unavailable, blackholed.')
+
+    return((None, None))
 
 
 ################
@@ -333,92 +350,100 @@ if len(sys.argv) > 1:
         run_tests()
         sys.exit(0)
 
-	if sys.argv[1] in ( '-?', '--help', '-h' ):
-		print 'usage: tumgreyspf [<configfilename> | --test]'
-		sys.exit(1)
-	configFile = sys.argv[1]
-configGlobal = tumgreyspfsupp.processConfigFile(filename = configFile)
+    if sys.argv[1] in ('-?', '--help', '-h'):
+        print 'usage: tumgreyspf [<configfilename> | --test]'
+        sys.exit(1)
+    configFile = sys.argv[1]
+configGlobal = tumgreyspfsupp.processConfigFile(filename=configFile)
 
 #  loop reading data
 debugLevel = configGlobal.get('debugLevel', 0)
-if debugLevel >= 2: syslog.syslog('Starting')
+if debugLevel >= 2:
+    syslog.syslog('Starting')
 instance_list = []
 data = {}
 lineRx = re.compile(r'^\s*([^=\s]+)\s*=(.*)$')
 while 1:
-	line = sys.stdin.readline()
-	if not line: break
-	line = string.rstrip(line)
-	if debugLevel >= 4: syslog.syslog('Read line: "%s"' % line)
+    line = sys.stdin.readline()
+    if not line:
+        break
+    line = string.rstrip(line)
+    if debugLevel >= 4:
+        syslog.syslog('Read line: "%s"' % line)
 
-	#  end of entry
-	if not line:
-		if debugLevel >= 4: syslog.syslog('Found the end of entry')
-		configData = tumgreyspfsupp.lookupConfig(configGlobal.get('configPath'),
-				data, configGlobal)
-		if debugLevel >= 2: syslog.syslog('Config: %s' % str(configData))
+    #  end of entry
+    if not line:
+        if debugLevel >= 4:
+            syslog.syslog('Found the end of entry')
+        configData = tumgreyspfsupp.lookupConfig(
+                configGlobal.get('configPath'), data, configGlobal)
+        if debugLevel >= 2:
+            syslog.syslog('Config: %s' % str(configData))
 
-		#  run the checkers
-		checkerValue = None
-		checkerReason = None
-		for checkerType in string.split(configData.get('CHECKERS', ''), ','):
-			checkerType = string.strip(checkerType)
+        #  run the checkers
+        checkerValue = None
+        checkerReason = None
+        for checkerType in string.split(configData.get('CHECKERS', ''), ','):
+            checkerType = string.strip(checkerType)
 
-			if checkerType == 'greylist':
-				checkerValue, checkerReason = greylistcheck(data, configData,
-						configGlobal)
-				if checkerValue != None: break
-			elif checkerType == 'spf':
-				checkerValue, checkerReason = spfcheck(data, configData,
-						configGlobal)
-				if configData.get('SPFSEEDONLY', 0):
-					checkerValue = None
-					checkerReason = None
-				if checkerValue != None and checkerValue != 'prepend': break
-			elif checkerType == 'blackhole':
-				checkerValue, checkerReason = blackholecheck(data, configData,
-						configGlobal)
-				if checkerValue != None: break
+            if checkerType == 'greylist':
+                checkerValue, checkerReason = greylistcheck(data, configData,
+                        configGlobal)
+                if checkerValue != None:
+                    break
+            elif checkerType == 'spf':
+                checkerValue, checkerReason = spfcheck(data, configData,
+                        configGlobal)
+                if configData.get('SPFSEEDONLY', 0):
+                    checkerValue = None
+                    checkerReason = None
+                if checkerValue != None and checkerValue != 'prepend':
+                    break
+            elif checkerType == 'blackhole':
+                checkerValue, checkerReason = blackholecheck(data, configData,
+                        configGlobal)
+                if checkerValue != None:
+                    break
 
-		#  handle results
+        #  handle results
 
-		if checkerValue == 'reject':
-			sys.stdout.write('action=550 %s\n\n' % checkerReason)
-			
-		elif checkerValue == 'prepend':
-			instance = data.get('instance')
-			# The following if is only needed for testing.  Postfix 
-			# will always provide instance.
-			if not instance:
-				import random
-				instance = str(int(random.random()*100000))
-			# This is to prevent multiple headers being prepended
-			# for multi-recipient mail.
-			found_instance = instance_list.count(instance)
-			if found_instance == 0:
-				sys.stdout.write('action=prepend %s\n\n' % checkerReason)
-				instance_list.append(instance)
-			else:
-				sys.stdout.write('action=dunno\n\n')
-		elif checkerValue == 'defer':
-			sys.stdout.write('action=defer_if_permit %s\n\n' % checkerReason)	
-		else:
-			sys.stdout.write('action=dunno\n\n')
+        if checkerValue == 'reject':
+            sys.stdout.write('action=550 %s\n\n' % checkerReason)
 
-		#  end of record
-		sys.stdout.flush()
-		data = {}
-		continue
+        elif checkerValue == 'prepend':
+            instance = data.get('instance')
+            # The following if is only needed for testing.  Postfix
+            # will always provide instance.
+            if not instance:
+                import random
+                instance = str(int(random.random() * 100000))
+            # This is to prevent multiple headers being prepended
+            # for multi-recipient mail.
+            found_instance = instance_list.count(instance)
+            if found_instance == 0:
+                sys.stdout.write('action=prepend %s\n\n' % checkerReason)
+                instance_list.append(instance)
+            else:
+                sys.stdout.write('action=dunno\n\n')
+        elif checkerValue == 'defer':
+            sys.stdout.write('action=defer_if_permit %s\n\n' % checkerReason)
+        else:
+            sys.stdout.write('action=dunno\n\n')
 
-	#  parse line
-	m = lineRx.match(line)
-	if not m: 
-		syslog.syslog('ERROR: Could not match line "%s"' % line)
-		continue
+        #  end of record
+        sys.stdout.flush()
+        data = {}
+        continue
 
-	#  save the string
-	key = m.group(1)
-	value = m.group(2)
-	if key not in [ 'protocol_state', 'protocol_name', 'queue_id' ]:
-		value = string.lower(value)
-	data[key] = value
+    #  parse line
+    m = lineRx.match(line)
+    if not m:
+        syslog.syslog('ERROR: Could not match line "%s"' % line)
+        continue
+
+    #  save the string
+    key = m.group(1)
+    value = m.group(2)
+    if key not in ['protocol_state', 'protocol_name', 'queue_id']:
+        value = string.lower(value)
+    data[key] = value
