@@ -59,7 +59,7 @@ NOTE BEFORE YOU USE TUMGREYSPF
    experience extremely poor performance.  There are details in one of my
    blog posts:
 
-      http://www.tummy.com/journals/entries/jafo_20051001_003419
+      http://www.tummy.com/blogs/2005/10/01/tumgreyspf-considered-useful/
 
    However, the short answer is that you need to be careful about blocking
    known bad recipient and sender addresses in Postfix before handing
