@@ -1,7 +1,16 @@
+================================
+Version 1.37 -- Mon Aug 12, 2013
+
 Handling pyspf 2.0.8 and higher which remove some functions we rely on.
-      Reported by Jeroen Ruigrok van der Werven
+      Reported by Jeroen Ruigrok van der Werven.
 Simplifying the loopback detection code, using simple address checking
-      or CIDR testing if the ipaddress module is available.
+      or CIDR testing if the ipaddress module is available.  The new
+      code checks for common loopback addresses, and if it isn't one of
+      those it will try doing a more extensive check if the "ipaddress"
+      module is avaiable.  If not, it assumes this is good enough.
+      The "ipaddress" module is included in Python 3.3, or for Python 2:
+      https://pypi.python.org/pypi/py2-ipaddress/1.0
+      This is entirely optional.
 Adding a unittest if run with "--test", currently just testing loopback
       detection code.
 
