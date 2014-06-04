@@ -28,4 +28,4 @@ except Exception, e:
 			% ( sys.argv[1], sys.exc_info()[1] ))
 	sys.exit(1)
 
-sys.exit(1)
+sys.exit(0)
