@@ -113,6 +113,7 @@ fp.close()
 #  find smtpd_recipient_restrictions
 startLinenum = None
 endLinenum = None
+linenum = None
 
 #  find start of smtpd_recipient_restrictions
 mode = 'start'
@@ -136,6 +137,15 @@ if startLinenum == None:
 			'   reject_unauth_destination\n',
 			]
 	if G_verbose: print 'No smtpd_recipient_restrictions found, adding.'
+elif endLinenum == None:
+    # start_line_num is not None, but end_line_num is, we might have a
+    # case where the smtpd_recipient_restrictions is at the total end
+    # of the conf file.
+    endLinenum = linenum
+    smtpd_recipient_restrictions = mainData[startLinenum:endLinenum]
+    if G_verbose:
+        print 'smtpd_recipient_restrictions seem to be the last directive ' \
+              'in the file, adding until end.'
 
 #  check for and add reject_unauth_destination
 found = 0
