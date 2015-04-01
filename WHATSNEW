@@ -1,3 +1,6 @@
+Fixing tumgreyspf-install if recipient_restrictions is the last line of
+      main.cf.  Patch from wforms on github.
+
 ================================
 Version 1.38 -- Tue Jun 03, 2014
 
