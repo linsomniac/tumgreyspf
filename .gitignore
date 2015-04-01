@@ -1,1 +1,3 @@
 *.pyc
+# Ignores all files in the .idea folder
+.idea/**
